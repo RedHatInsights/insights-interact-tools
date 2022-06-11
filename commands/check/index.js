@@ -1,7 +1,6 @@
-// TODO all these command/XYZ/index.js look the same maybe we can refactor this and even avoid an index.js
-import packages from './packages.js';
+import { runSubcommand } from '../../lib/commandHelpers.js';
+import outdatedPackages from './outdatedPackages.js';
 
-export default async ([command], cli, config) =>
-  ({
-    packages
-  }[command])(cli, config);
+export default runSubcommand({
+  outdatedPackages
+});

@@ -1,6 +1,6 @@
+import { runSubcommand } from '../../lib/commandHelpers.js';
 import packageUpdate from './packageUpdate.js';
 
-export default async ([command], cli, config) =>
-  ({
-    packageUpdate
-  }[command] || (() => ({})))(cli, config);
+export default runSubcommand({
+  packageUpdate
+});

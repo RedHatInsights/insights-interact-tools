@@ -1,4 +1,4 @@
-import { execAsync } from './commands/helpers.js';
+import { execAsync } from './lib/helpers.js';
 
 export default {
   'insights-chrome': {

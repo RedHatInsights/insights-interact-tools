@@ -3,7 +3,6 @@ import meow from 'meow';
 import { run, usage } from './lib/commandHelpers.js';
 
 const currentPath = path.join(process.env.PWD);
-
 const cli = meow(usage(), {
   importMeta: import.meta,
   description: false,
@@ -18,7 +17,13 @@ const cli = meow(usage(), {
     },
     packagepattern: {
       type: 'string',
-      alias: 'pp'
+      alias: ['pp', 'p']
+    },
+    // TODO This should be a comma separated string of app names
+    // It should be used to limit what app(s) the scripts run on
+    apps: {
+      type: 'string',
+      alias: ['app', 'a']
     }
   }
 });
