@@ -25,6 +25,7 @@ const cloneApps = (_, { basePath, apps }) => {
     if (repoExists) {
       log.info(`Working copy for ${name} already existed.`);
     } else {
+      // TODO use nodegit for this and any other git operations https://www.nodegit.org
       await execAsync(`git clone ${githubRepoUrl(owner, repo)} ${repoPath}`, {
         cwd: basePath
       });
@@ -48,6 +49,7 @@ const npmInstalls = async (_, { basePath, apps }) => {
 };
 
 export default async (cli, config) => {
+  // TODO offer to set up a basic configuration as a dotfile in the home directory and provide a shell alias
   await createBaseDirectory(cli, config);
   await cloneApps(cli, config);
   await npmInstalls(cli, config);

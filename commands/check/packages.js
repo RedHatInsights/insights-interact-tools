@@ -30,7 +30,7 @@ const buildPackageTable = (appName, pkgJson, packagePattern) => {
   });
 
   console.log('\n');
-  log.warn('Outdated packages in ' + appName);
+  log.warn(Object.keys(packages).length + ' Outdated packages in ' + appName);
   console.log(table.toString());
 };
 

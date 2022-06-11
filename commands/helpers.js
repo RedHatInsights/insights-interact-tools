@@ -26,6 +26,8 @@ const compileConfig = (config) => ({
 export const readConfig = async ({ configPath }) =>
   compileConfig((await import(configPath)).default);
 
+// TODO it should be configurable which protocol to use in the config file
+// TODO Maybe it should also be possible to use any other repo url/host
 export const githubRepoUrl = (owner, repo, https = false) =>
   https ? `https://github.com/${owner}/${repo}.git` : `git@github.com:${owner}/${repo}.git`;
 
