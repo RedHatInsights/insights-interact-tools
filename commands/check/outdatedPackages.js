@@ -22,9 +22,9 @@ const buildPackageTable = (appName, pkgJson, packagePattern) => {
       head: ['Package name', 'Current version', 'Latest version']
     });
 
-    packages.forEach(([name, { current, latest }]) => {
+    for (const [name, { current, latest }] of packages) {
       table.push(coloredPackageRow([name, current, latest], { current, latest }));
-    });
+    }
 
     log.plain('\n');
     log.warn(packageCount + ' outdated packages in ' + appName + (packagePattern ? ` matching "${packagePattern}"` : ''));

@@ -17,7 +17,7 @@ const createBaseDirectory = async ({ flags: { reset } }, { basePath }) => {
 };
 
 const cloneApps = (_, { basePath, apps }) => {
-  log.info(`Cloning apps: ${apps.map(({ name }) => (name)).join(',')}`);
+  log.info(`Cloning apps: ${apps.map(({ name }) => (name)).join(', ')}`);
 
   return Promise.all(apps.map(async ({ name, owner, repo, basePath, repoPath }) => {
     const repoExists = existsSync(repoPath);

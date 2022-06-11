@@ -3,11 +3,13 @@ import { filteredPackages } from '../../lib/packageHelpers.js';
 import { listOutdated, update } from '../../lib/npmHelpers.js';
 
 const updatePackagesInApp = async (app, packages) => {
-  // TODO implement strategies to install packages all at once or one by one
-  await update(app.repoPath, packages);
+  for (const pkg of packages) {
+    log.info('Updating ' + pkg + ' in ' + app.name);
+    await update(app.repoPath, [pkg]);
+  }
 };
 
-const updatePackages = async (app, cli) => {
+const updatePackages = async (app, cli, config) => {
   const pkgJson = await listOutdated(app.repoPath);
   const packagePattern = cli.flags.pp;
   const packages = filteredPackages(pkgJson, packagePattern);
@@ -15,12 +17,13 @@ const updatePackages = async (app, cli) => {
   const packageList = packages.map(([name]) => (name));
 
   if (packageCount > 0) {
-    log.info('Updating ' + packageList.join(',') + 'in ' + app.name); ;
     await updatePackagesInApp(app, packageList);
+    log.info('Running package update hook for ' + app.name);
+    await app.onPackageUpdateComplete?.(cli, config, app);
   }
 };
 
-export default async (cli, { apps }) =>
-  Promise.all(apps.map(async (app) =>
-    await updatePackages(app, cli)
+export default async (cli, config) =>
+  Promise.all(config.apps.map(async (app) =>
+    await updatePackages(app, cli, config)
   ));

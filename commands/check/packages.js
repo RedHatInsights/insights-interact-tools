@@ -9,18 +9,20 @@ const listPackages = async (app, cli) => {
   const packages = filteredPackages(pkgJson, packagePattern);
   const packageCount = packages.length;
 
-  const table = new Table({
-    style: { head: [], border: [] },
-    head: ['Package name', 'Current version']
-  });
+  if (packageCount > 0) {
+    const table = new Table({
+      style: { head: [], border: [] },
+      head: ['Package name', 'Current version']
+    });
 
-  packages.forEach(([name, { version }]) => {
-    table.push([name, version]);
-  });
+    for (const [name, { version }] of packages) {
+      table.push([name, version]);
+    }
 
-  log.plain('\n');
-  log.info(packageCount + ' packages in ' + app.name + (packagePattern ? ` matching "${packagePattern}"` : ''));
-  log.plain(table.toString());
+    log.plain('\n');
+    log.info(packageCount + ' packages in ' + app.name + (packagePattern ? ` matching "${packagePattern}"` : ''));
+    log.plain(table.toString());
+  }
 };
 
 export default async (cli, { apps }) =>
