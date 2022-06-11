@@ -12,7 +12,6 @@
   "dependencies": {
     "chalk": "^5.0.1",
     "cli-table": "^0.3.11",
-    "execa": "^6.1.0",
     "figures": "^4.0.1",
     "log-symbols": "^5.1.0",
     "marked": "^4.0.16",

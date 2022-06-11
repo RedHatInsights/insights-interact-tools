@@ -8,8 +8,8 @@ export default {
   apps: [
     'compliance',
     { name: 'advisor' },
-    'patch',
+    'patch'
     // { name: 'vulnerability', localChrome: true },
-    { name: 'malware', 'frontend-components': true }
+    // { name: 'malware', 'frontend-components': true }
   ]
 };

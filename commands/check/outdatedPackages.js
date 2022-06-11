@@ -2,7 +2,9 @@ import Table from 'cli-table';
 import chalk from 'chalk';
 import semver from 'semver';
 import figures from 'figures';
-import { execAsync, log } from '../../lib/helpers.js';
+import { log } from '../../lib/helpers.js';
+import { filteredPackages } from '../../lib/packageHelpers.js';
+import { listOutdated } from '../../lib/npmHelpers.js';
 
 const coloredPackageRow = (row, { current, latest }) => ({
   major: (row) => row.map((word) => chalk.red(word)),
@@ -10,27 +12,8 @@ const coloredPackageRow = (row, { current, latest }) => ({
   patch: (row) => row.map((word) => chalk.green(word))
 }[semver.diff(current, latest)] || ((row) => (row)))(row);
 
-const packageFilter = (packagePattern) => ([name]) => {
-  // TODO support NOT matching via "!" prefixed patterns
-  // TODO support multiple comma separated patterns
-  // TODO support exact matching
-  // TODO just support some sort of query language to drill down packages
-  /**
-   *    "@redhat" should match all packages starting with this term ("@" has no significants)
-   *    "!@redhat" should match all packages not starting with this term
-   *    "~@redhat" should match all packages containing the term (this can also be negated with "!" at the start
-   *    "$@redhat" should match all packages ending with the term
-   *    "=@patternfly/react-core" should match the package exactly matching
-   *    "@redhat=major" should match all package updates that are starting with the term and are major updates (other levels should work too)
-   */
-  return name.startsWith(packagePattern);
-};
-
 const buildPackageTable = (appName, pkgJson, packagePattern) => {
-  const packages = ((json, pattern) => {
-    const pkgs = Object.entries(JSON.parse(json));
-    return pattern ? pkgs.filter(packageFilter(pattern)) : pkgs;
-  })(pkgJson, packagePattern);
+  const packages = filteredPackages(pkgJson, packagePattern);
   const packageCount = packages.length;
 
   if (packageCount > 0) {
@@ -51,11 +34,8 @@ const buildPackageTable = (appName, pkgJson, packagePattern) => {
 
 const checkOutdated = async ({ name, repoPath }, { flags: { packagepattern } }) => {
   try {
-    const { stdout: json } = await execAsync('npm outdated --json 2> /dev/null; exit 0', {
-      cwd: repoPath
-    });
-
-    buildPackageTable(name, json, packagepattern);
+    const packages = await listOutdated(repoPath);
+    buildPackageTable(name, packages, packagepattern);
   } catch (error) {
     log.error('Failed to check outated packages in ' + name);
     throw error;
