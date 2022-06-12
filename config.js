@@ -7,7 +7,7 @@ export default {
   githubUser: 'bastilian',
   apps: [
     'compliance',
-    { name: 'advisor' },
+    // { name: 'advisor' },
     'patch'
     // { name: 'vulnerability', localChrome: true },
     // { name: 'malware', 'frontend-components': true }

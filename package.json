@@ -10,8 +10,10 @@
   "author": "Insights Interact Team",
   "license": "MIT",
   "dependencies": {
+    "ascii-art": "^2.8.5",
     "chalk": "^5.0.1",
     "cli-table": "^0.3.11",
+    "enquirer": "^2.3.6",
     "figures": "^4.0.1",
     "log-symbols": "^5.1.0",
     "marked": "^4.0.16",

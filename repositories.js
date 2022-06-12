@@ -1,6 +1,6 @@
 import { execAsync } from './lib/helpers.js';
 
-export default {
+export const framework = {
   'insights-chrome': {
     owner: 'RedHatInsights',
     repo: 'insights-chrome'
@@ -8,7 +8,10 @@ export default {
   'frontend-components': {
     owner: 'RedHatInsights',
     repo: 'frontend-components'
-  },
+  }
+};
+
+export const apps = {
   compliance: {
     owner: 'RedHatInsights',
     repo: 'compliance-frontend',
@@ -35,6 +38,30 @@ export default {
   malware: {
     owner: 'RedHatInsights',
     repo: 'malware-detection-frontend'
+  },
+  inventory: {
+    owner: 'RedHatInsights',
+    repo: 'insights-inventory-frontend'
+  },
+  drift: {
+    owner: 'RedHatInsights',
+    repo: 'drift-frontend'
+  },
+  'insights-dashboard': {
+    owner: 'RedHatInsights',
+    repo: 'insights-dashboard'
+  },
+  'rhc-dashboard': {
+    owner: 'RedHatInsights',
+    repo: 'sed-frontend'
+  },
+  remediations: {
+    owner: 'RedHatInsights',
+    repo: 'insights-remediations-frontend'
   }
-  // TODO add missing apps
+};
+
+export default {
+  ...framework,
+  ...apps
 };

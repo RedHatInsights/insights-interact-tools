@@ -4,4 +4,4 @@
 //   # this should only set up the repo and install node_modules
 //   insights-interact setup frontendComponents
 //   # this should do the above and link any FEC package used in compliance with the working copy
-//   insights-interact setup frontendComponents compliance
+//   insights-interact setup frontendComponents --app compliance

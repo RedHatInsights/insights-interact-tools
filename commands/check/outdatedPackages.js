@@ -46,8 +46,8 @@ const introLog = () => {
   log.info('Checking for outdated packages');
 
   log.plain(
-    chalk.red(figures.circleFilled), 'Major update', '\t\t',
-    chalk.yellow(figures.circleFilled), 'Minor update', '\t\t',
+    chalk.red(figures.circleFilled), 'Major update', '\t\t\t',
+    chalk.yellow(figures.circleFilled), 'Minor update', '\t\t\t',
     chalk.green(figures.circleFilled), 'Patch update'
   );
 };

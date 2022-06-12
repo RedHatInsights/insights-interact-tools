@@ -1,6 +1,7 @@
 import { mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { githubRepoUrl, execAsync, log } from '../../lib/helpers.js';
+// TODO use ora to indicate something is working in the background https://www.npmjs.com/package/ora
 
 const createBaseDirectory = async ({ flags: { reset } }, { basePath }) => {
   if (reset) {
@@ -29,7 +30,8 @@ const cloneApps = (_, { basePath, apps }) => {
       await execAsync(`git clone ${githubRepoUrl(owner, repo)} ${repoPath}`, {
         cwd: basePath
       });
-
+      // TODO after the repository is cloned the "origin" remote should be remove (or renamed to "upstream").
+      // TODO Setup origin remotes using githubUser
       log.success(`Cloned ${name}`);
     }
   }
@@ -52,5 +54,4 @@ export default async (cli, config) => {
   await createBaseDirectory(cli, config);
   await cloneApps(cli, config);
   await npmInstalls(cli, config);
-  // TODO Setup origin/upstream remotes using githubUser
 };
