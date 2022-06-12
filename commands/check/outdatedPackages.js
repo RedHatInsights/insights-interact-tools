@@ -1,8 +1,7 @@
-import Table from 'cli-table';
 import chalk from 'chalk';
 import semver from 'semver';
 import figures from 'figures';
-import { log } from '../../lib/helpers.js';
+import { log, drawTable } from '../../lib/helpers.js';
 import { filteredPackages } from '../../lib/packageHelpers.js';
 import { listOutdated } from '../../lib/npmHelpers.js';
 
@@ -12,33 +11,20 @@ const coloredPackageRow = (row, { current, latest }) => ({
   patch: (row) => row.map((word) => chalk.green(word))
 }[semver.diff(current, latest)] || ((row) => (row)))(row);
 
-const buildPackageTable = (appName, pkgJson, packagePattern) => {
-  const packages = filteredPackages(pkgJson, packagePattern);
-  const packageCount = packages.length;
+const listOutdatedPackages = async ({ name, repoPath }, { flags: { packagepattern } }) => {
+  const packages = filteredPackages((await listOutdated(repoPath)), packagepattern);
 
-  if (packageCount > 0) {
-    const table = new Table({
-      style: { head: [], border: [] },
-      head: ['Package name', 'Current version', 'Latest version']
-    });
+  if (packages.length > 0) {
+    const colouredPackages = packages.map(({ name, current, latest }) =>
+      coloredPackageRow([name, current, latest], { current, latest })
+    );
 
-    for (const [name, { current, latest }] of packages) {
-      table.push(coloredPackageRow([name, current, latest], { current, latest }));
-    }
-
+    log.warn(packages.length + ' outdated packages in ' + name + (packagepattern ? ` matching "${packagepattern}"` : ''));
+    drawTable(
+      ['Package name', 'Current version', 'Latest version'],
+      colouredPackages
+    );
     log.plain('\n');
-    log.warn(packageCount + ' outdated packages in ' + appName + (packagePattern ? ` matching "${packagePattern}"` : ''));
-    log.plain(table.toString());
-  }
-};
-
-const checkOutdated = async ({ name, repoPath }, { flags: { packagepattern } }) => {
-  try {
-    const packages = await listOutdated(repoPath);
-    buildPackageTable(name, packages, packagepattern);
-  } catch (error) {
-    log.error('Failed to check outated packages in ' + name);
-    throw error;
   }
 };
 
@@ -50,11 +36,13 @@ const introLog = () => {
     chalk.yellow(figures.circleFilled), 'Minor update', '\t\t\t',
     chalk.green(figures.circleFilled), 'Patch update'
   );
+
+  log.plain('\n');
 };
 
 export default async (cli, { apps }) => {
   introLog();
-  return Promise.all(apps.map(async (app) =>
-    await checkOutdated(app, cli)
-  ));
+  for (const app of apps) {
+    await listOutdatedPackages(app, cli);
+  }
 };

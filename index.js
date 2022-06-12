@@ -24,6 +24,10 @@ const cli = meow(usage(), {
     apps: {
       type: 'string',
       alias: ['app', 'a']
+    },
+    command: {
+      type: 'string',
+      alias: ['c']
     }
   }
 });
@@ -31,5 +35,5 @@ const cli = meow(usage(), {
 run({
   ...cli,
   currentPath,
-  configPath: path.join(currentPath, cli.flags.config)
+  ...cli.flags.config ? { configPath: path.join(cli.flags.config) } : {}
 });

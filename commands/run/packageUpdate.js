@@ -18,12 +18,16 @@ const updatePackages = async (app, cli, config) => {
 
   if (packageCount > 0) {
     await updatePackagesInApp(app, packageList);
-    log.info('Running package update hook for ' + app.name);
-    await app.onPackageUpdateComplete?.(cli, config, app);
+
+    if (app.onPackageUpdateComplete) {
+      log.info('Running package update hook for ' + app.name);
+      await app.onPackageUpdateComplete?.(cli, config, app);
+    }
   }
 };
 
-export default async (cli, config) =>
-  Promise.all(config.apps.map(async (app) =>
-    await updatePackages(app, cli, config)
-  ));
+export default async (cli, config) => {
+  for (const app of (config.apps || [])) {
+    await updatePackages(app, cli, config);
+  }
+};

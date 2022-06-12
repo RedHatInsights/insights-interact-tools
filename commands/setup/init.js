@@ -16,7 +16,11 @@ const setConfigPath = () =>
     }
   );
 
-const confirmedSaveConfigFile = async (contents) => {
+const confirmedSaveConfigFile = async (config) => {
+  log.plain('\n');
+  log.info('The config file will look like this:');
+  log.chalk('blueBright', '\n' + (await YAML.stringify(config)));
+
   const saveToHome = await togglePrompt(
     'Want to save the config file to ' + chalk.bold(configHomePath),
     'Yes', 'No',
@@ -24,25 +28,36 @@ const confirmedSaveConfigFile = async (contents) => {
   );
   const savePath = saveToHome ? configHomePath : await setConfigPath();
 
-  await saveConfigFile(savePath, contents);
+  await saveConfigFile(savePath, config);
 };
 
-export default async (cli, config) => {
+export default async (_cli, _config) => {
   await asciiHeader();
   log.plain('Ahoy!\n');
   log.plain('This wizard will guide you through creating a config file for setting up Insights frontend applications.\n');
 
   const currentConfig = await readConfigFile(configHomePath);
+
   const apps = await selectApplications({
     message: 'Select the applications to configure'
   }, currentConfig.apps);
-  const basePath = await inputPrompt('Where should the applications be set up?', (currentConfig.basePath || process.env.HOME));
-  const githubUser = await inputPrompt('What is your GitHub username?', (currentConfig.githubUser || readGHuser())); ;
-  const contents = YAML.stringify({ apps, basePath, githubUser });
 
-  log.plain('\n');
-  log.info('The config file will look like this:');
-  log.chalk('blueBright', contents);
+  const basePath = await inputPrompt(
+    'Where should the applications be set up?',
+    (currentConfig.basePath || process.env.HOME),
+    {
+      validate: (value) => (value === process.env.HOME ? 'Path can not be the home directory' : true)
+    }
+  );
 
-  confirmedSaveConfigFile(contents);
+  const githubUser = await inputPrompt(
+    'What is your GitHub username?',
+    (currentConfig.githubUser || readGHuser())
+  );
+
+  await confirmedSaveConfigFile({ ...currentConfig, apps, basePath, githubUser });
+
+  log.success('\nThe configuration is now finished.\n');
+  log.plain('You can run the setup for the applications with:\n');
+  log.plain('\t $ insights-interact setup apps');
 };

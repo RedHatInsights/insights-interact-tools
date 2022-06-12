@@ -1,31 +1,23 @@
-import Table from 'cli-table';
-import { log } from '../../lib/helpers.js';
+import { log, drawTable } from '../../lib/helpers.js';
 import { filteredPackages } from '../../lib/packageHelpers.js';
 import { list } from '../../lib/npmHelpers.js';
 
 const listPackages = async (app, cli) => {
-  const pkgJson = await list(app.repoPath);
   const packagePattern = cli.flags.pp;
-  const packages = filteredPackages(pkgJson, packagePattern);
+  const packages = filteredPackages((await list(app.repoPath)), packagePattern);
   const packageCount = packages.length;
 
   if (packageCount > 0) {
-    const table = new Table({
-      style: { head: [], border: [] },
-      head: ['Package name', 'Current version']
-    });
-
-    for (const [name, { version }] of packages) {
-      table.push([name, version]);
-    }
-
-    log.plain('\n');
     log.info(packageCount + ' packages in ' + app.name + (packagePattern ? ` matching "${packagePattern}"` : ''));
-    log.plain(table.toString());
+    drawTable(
+      ['Package name', 'Current version'],
+      packages.map(({ name, version }) => [name, version])
+    );
   }
 };
 
-export default async (cli, { apps }) =>
-  Promise.all(apps.map(async (app) =>
-    await listPackages(app, cli)
-  ));
+export default async (cli, { apps }) => {
+  for (const app of apps) {
+    await listPackages(app, cli);
+  }
+};

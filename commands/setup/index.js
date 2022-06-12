@@ -5,4 +5,4 @@ import apps from './apps.js';
 export default runSubcommand({
   apps,
   init
-});
+}, init);
