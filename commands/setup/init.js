@@ -1,41 +1,48 @@
-import enquirer from 'enquirer';
-import { log } from '../../lib/helpers.js';
+import chalk from 'chalk';
+import YAML from 'yaml';
+import { log, readGHuser } from '../../lib/helpers.js';
+import { configHomePath, readConfigFile, saveConfigFile } from '../../lib/configHelpers.js';
 import { asciiHeader } from '../../lib/commandHelpers.js';
-import { appChoices, selectApplications } from '../../lib/promptHelpers.js';
-const { Select } = enquirer;
+import { selectApplications, inputPrompt, togglePrompt } from '../../lib/promptHelpers.js';
 
-const allOrSelectedApps = async () => {
-  const prompt = new Select({
-    name: 'allOrSelected',
-    hint: 'All applications would be: ' + (appChoices.map(({ name }) => (name)).join(', ')),
-    message: 'Should it be configured for all applications or only selected ones?',
-    choices: ['All', 'Selected']
-  });
+const setConfigPath = () =>
+  inputPrompt(
+    'Where should the config file by saved to?',
+    configHomePath,
+    {
+      validate: (value) => (
+        !value.endsWith('.yml') && !value.endsWith('.yaml') ? 'File must a YAML (.yml or .yaml).' : true
+      )
+    }
+  );
 
-  return await prompt.run();
-};
+const confirmedSaveConfigFile = async (contents) => {
+  const saveToHome = await togglePrompt(
+    'Want to save the config file to ' + chalk.bold(configHomePath),
+    'Yes', 'No',
+    { initial: true }
+  );
+  const savePath = saveToHome ? configHomePath : await setConfigPath();
 
-const compileConfigFileContents = async ({ apps, basePath = '', githubUser = '' }) => {
-  return `
-export default {
-  basePath: '${basePath}',
-  githubUser: '${githubUser}',
-  apps: [${apps.map((app) => (`'${app}'`)).join(', ')}]
-};
-`;
+  await saveConfigFile(savePath, contents);
 };
 
 export default async (cli, config) => {
   await asciiHeader();
   log.plain('Ahoy!\n');
   log.plain('This wizard will guide you through creating a config file for setting up Insights frontend applications.\n');
-  // TODO read the raw/uncompiled config if given for preselecting choices
-  const allOrSelected = await allOrSelectedApps();
-  if (allOrSelected === 'All') {
 
-  } else {
-    const apps = await selectApplications('to configure');
-    const contents = await compileConfigFileContents({ apps });
-    log.chalk('blueBright', contents);
-  }
+  const currentConfig = await readConfigFile(configHomePath);
+  const apps = await selectApplications({
+    message: 'Select the applications to configure'
+  }, currentConfig.apps);
+  const basePath = await inputPrompt('Where should the applications be set up?', (currentConfig.basePath || process.env.HOME));
+  const githubUser = await inputPrompt('What is your GitHub username?', (currentConfig.githubUser || readGHuser())); ;
+  const contents = YAML.stringify({ apps, basePath, githubUser });
+
+  log.plain('\n');
+  log.info('The config file will look like this:');
+  log.chalk('blueBright', contents);
+
+  confirmedSaveConfigFile(contents);
 };
