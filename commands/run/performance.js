@@ -48,26 +48,6 @@ export default async () => {
 
   for (const app in insightUrls) {
     for (let i = 0; i < app.length; i++) {
-      const table = new Table({
-        chars: {
-          top: '═',
-          'top-mid': '╤',
-          'top-left': '╔',
-          'top-right': '╗',
-          bottom: '═',
-          'bottom-mid': '╧',
-          'bottom-left': '╚',
-          'bottom-right': '╝',
-          left: '║',
-          'left-mid': '╟',
-          mid: '─',
-          'mid-mid': '┼',
-          right: '║',
-          'right-mid': '╢',
-          middle: '│'
-        }
-      });
-
       const currentUrl = insightUrls[app][i];
       console.log(`Currently generating ${fileType} report for ` + currentUrl);
       if (currentUrl !== undefined) {
@@ -79,9 +59,38 @@ export default async () => {
           // logLevel: 'info'
         });
         const values = Object.values(results.lhr.categories).map(
-          (c) => c.score
+          (c) => c.score * 100
         );
-        table.push(metrics, values);
+        let color;
+        if (values[0] >= 80) {
+          color = 'green';
+        } else if (values[0] < 80 && values[0] >= 50) {
+          color = 'orange';
+        } else {
+          color = 'red';
+        }
+        const table = new Table({
+          chars: {
+            top: '═',
+            'top-mid': '╤',
+            'top-left': '╔',
+            'top-right': '╗',
+            bottom: '═',
+            'bottom-mid': '╧',
+            'bottom-left': '╚',
+            'bottom-right': '╝',
+            left: '║',
+            'left-mid': '╟',
+            mid: '─',
+            'mid-mid': '┼',
+            right: '║',
+            'right-mid': '╢',
+            middle: '│'
+          },
+          style: { head: [color] },
+          head: metrics
+        });
+        table.push(values);
         console.log(table.toString());
 
         if (oneFile) {
