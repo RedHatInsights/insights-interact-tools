@@ -1,7 +1,8 @@
 import puppeteer from 'puppeteer';
 import lighthouse from 'lighthouse';
 import { appendFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { insightUrls, login } from '../../lib/helpers.js';
+import { login } from '../../lib/helpers.js';
+import { insightUrls } from '../../lib/performanceUrls.js';
 import path from 'path';
 import Table from 'cli-table';
 
