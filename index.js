@@ -28,6 +28,10 @@ const cli = meow(usage(), {
     command: {
       type: 'string',
       alias: ['c']
+    },
+    filetype: {
+      type: 'string',
+      alias: ['csv', 'json', 'html']
     }
   }
 });
