@@ -25,13 +25,7 @@ const metrics = [
  * @param {string} fileType `csv, json, html`
  * @param {boolean} oneFile `Do you want one big file, or individual files for every url? `
  */
-export default async () => {
-  const fileType =
-    process.argv[4] && (process.argv[4] === 'csv' || 'html' || 'json')
-      ? process.argv[4]
-      : 'csv';
-  const oneFile = !process.argv[5];
-
+export default async ({ flags: { fileType, oneFile } }) => {
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true }, (err) => {
       console.log(err);

@@ -31,7 +31,11 @@ const cli = meow(usage(), {
     },
     filetype: {
       type: 'string',
-      alias: ['csv', 'json', 'html']
+      alias: ['ft']
+    },
+    oneFile: {
+      type: 'boolean',
+      alias: ['oF']
     }
   }
 });
