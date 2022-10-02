@@ -2,6 +2,18 @@ import { log } from '../../lib/helpers.js';
 import { filteredPackages } from '../../lib/packageHelpers.js';
 import { listOutdated, update } from '../../lib/npmHelpers.js';
 
+export const flags = {
+  packagepattern: {
+    type: 'string',
+    alias: ['pp', 'p'],
+    description: 'Allows defining a simple pattern to limit packages updated.'
+  }
+};
+
+export const help = `
+  Update packages in installed applications.
+`;
+
 const updatePackagesInApp = async (app, packages) => {
   for (const pkg of packages) {
     log.info('Updating ' + pkg + ' in ' + app.name);
@@ -11,7 +23,7 @@ const updatePackagesInApp = async (app, packages) => {
 
 const updatePackages = async (app, cli, config) => {
   const pkgJson = await listOutdated(app.repoPath);
-  const packagePattern = cli.flags.pp;
+  const packagePattern = cli.flags.packagepattern;
   const packages = filteredPackages(pkgJson, packagePattern);
   const packageCount = packages.length;
   const packageList = packages.map(([name]) => (name));

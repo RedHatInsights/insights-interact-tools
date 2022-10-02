@@ -5,6 +5,10 @@ import { configHomePath, readConfigFile, saveConfigFile } from '../../lib/config
 import { asciiHeader } from '../../lib/commandHelpers.js';
 import { selectApplications, inputPrompt, togglePrompt } from '../../lib/promptHelpers.js';
 
+export const help = `
+  A Wizard to setup a configuration file (~/.insights-interact.yml)
+`;
+
 const setConfigPath = () =>
   inputPrompt(
     'Where should the config file by saved to?',

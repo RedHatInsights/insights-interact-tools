@@ -6,6 +6,23 @@ import { insightUrls } from '../../lib/performanceUrls.js';
 import path from 'path';
 import Table from 'cli-table';
 
+export const flags = {
+  filetype: {
+    type: 'string',
+    alias: ['ft'],
+    description: 'Output file type [csv, json, html]'
+  },
+  oneFile: {
+    type: 'boolean',
+    alias: ['oF'],
+    description: 'Put performance results into one file'
+  }
+};
+
+export const help = `
+  Run Lighthouse performance tests agains apps.
+`;
+
 // Lighthouse viewer : https://googlechrome.github.io/lighthouse/viewer/  to view jsons.
 // To view html, you can go to the same URL, or simple run a Live Server with the html file
 

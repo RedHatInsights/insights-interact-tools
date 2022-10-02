@@ -2,19 +2,29 @@
 
 ## Install
 
-  1. Clone the repository via `git clone git@github.com:bastilian/insights-interact-tools.git $HOME/.insights-interact`
-  2. Install node packages via `cd $HOME/.insights-interact && npm install`
-  3. Add an alias to your `.bashrc` or `.zshrc`: `alias insights-interact="node $HOME/.insights-interact/index.js"`
+  1. Clone the repository
 
-## CLI Usage
-
+```shell
+  $ git clone git@github.com:bastilian/insights-interact-tools.git $HOME/.insights-interact
 ```
-  Usage
-    $ insights-interact <command>
 
-  Options
-    --config, -c Provide setup config
+  2. Install node packages via
 
-  Examples
-    $ insights-interact <command> --config /path/to/config.js
+```shell
+  $ cd $HOME/.insights-interact && npm install
+```
+
+  3. Add an alias to your `.bashrc` or `.zshrc`:
+```
+  alias insights-interact="node $HOME/.insights-interact/index.js"
+```
+
+**Note:** The repo can be cloned to anywhere. `$HOME` is used as default for a global installation.
+
+# CLI Usage
+
+To see a list of commands and flags use `--help`
+
+```shell
+  $ insights-interact --help
 ```

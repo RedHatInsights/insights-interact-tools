@@ -2,6 +2,18 @@ import { log, drawTable } from '../../lib/helpers.js';
 import { filteredPackages } from '../../lib/packageHelpers.js';
 import { list } from '../../lib/npmHelpers.js';
 
+export const flags = {
+  packagepattern: {
+    type: 'string',
+    alias: ['pp', 'p'],
+    description: 'Allows defining a simple pattern to limit packages listed.'
+  }
+};
+
+export const help = `
+  Queries all apps for packages and lists them.
+`;
+
 const listPackages = async (app, cli) => {
   const packagePattern = cli.flags.pp;
   const packages = filteredPackages((await list(app.repoPath)), packagePattern);

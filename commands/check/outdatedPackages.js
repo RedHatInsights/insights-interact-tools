@@ -5,6 +5,18 @@ import { log, drawTable } from '../../lib/helpers.js';
 import { filteredPackages } from '../../lib/packageHelpers.js';
 import { listOutdated } from '../../lib/npmHelpers.js';
 
+export const flags = {
+  packagepattern: {
+    type: 'string',
+    alias: ['pp', 'p'],
+    description: 'Allows defining a simple pattern to limit packages queried/listed.'
+  }
+};
+
+export const help = `
+  Queries all apps for outdated packages and lists them.
+`;
+
 const coloredPackageRow = (row, { current, latest }) => ({
   major: (row) => row.map((word) => chalk.red(word)),
   minor: (row) => row.map((word) => chalk.yellow(word)),

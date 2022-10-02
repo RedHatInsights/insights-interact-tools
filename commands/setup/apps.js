@@ -6,6 +6,18 @@ import { togglePrompt } from '../../lib/promptHelpers.js';
 import { cleanInstall } from '../../lib/npmHelpers.js';
 import { clone } from '../../lib/gitHelpers.js';
 
+export const flags = {
+  reset: {
+    type: 'boolean',
+    alias: 'r',
+    description: 'Removes the base directory and creates fresh clones of all apps'
+  }
+};
+
+export const help = `
+  Creates a directory, clones applications in it and sets them up.
+`;
+
 const resetBaseDirectory = async ({ flags: { reset } }, { basePath }) => {
   if (reset) {
     const force = await togglePrompt('Really reset/remove ' + basePath + '?');
