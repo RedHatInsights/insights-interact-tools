@@ -21,7 +21,7 @@
 
 **Note:** The repo can be cloned to anywhere. `$HOME` is used as default for a global installation.
 
-# CLI Usage
+## CLI Usage
 
 To see a list of commands and flags use `--help`
 
@@ -30,7 +30,42 @@ To see a list of commands and flags use `--help`
 ```
 
 
-MIT License
+## Adding a new command
+
+To add a new command create a JavaScript module exporting an async function in any of the `./commands` sub-directories.
+The command will be executable via
+
+```shell
+  $ insights-interact SUB_DIRECTORY JS_FILENAME
+```
+
+The module can also export a `help` and `flags` property to define a help text shown in `--help` and flags that can be provided
+
+### Command module boilerplate
+
+```js
+export const flags = {
+  flagName: {
+    type: 'string',
+    alias: ['c'],
+    description: 'Shell command to run'
+  }
+};
+
+export const help = `
+  HELP TEXT
+`;
+
+export default async (
+  cli, // object returned from meow
+  config // config object created from ~/.insights-interact.yml (or provided config)
+) => {
+  // Run things run
+};
+```
+
+
+## MIT License
 
 Copyright (c) 2022 The contributors
 
