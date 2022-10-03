@@ -16,6 +16,16 @@ export const flags = {
     type: 'boolean',
     alias: ['oF'],
     description: 'Put performance results into one file'
+  },
+  username: {
+    type: 'string',
+    alias: ['user'],
+    description: 'Username to login in performance script'
+  },
+  password: {
+    type: 'string',
+    alias: ['pw'],
+    description: 'Username to login in performance script'
   }
 };
 
@@ -42,7 +52,7 @@ const metrics = [
  * @param {string} fileType `csv, json, html`
  * @param {boolean} oneFile `Do you want one big file, or individual files for every url? `
  */
-export default async ({ flags: { fileType, oneFile } }) => {
+export default async ({ flags: { fileType, oneFile, username, password } }) => {
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true }, (err) => {
       console.log(err);
@@ -55,7 +65,7 @@ export default async ({ flags: { fileType, oneFile } }) => {
     headless: false,
     slowMo: 50
   });
-  await login(browser, 'https://console.stage.redhat.com/insights/dashboard');
+  await login(browser, 'https://console.stage.redhat.com/insights/dashboard', username, password);
 
   for (const app in insightUrls) {
     for (let i = 0; i < app.length; i++) {
