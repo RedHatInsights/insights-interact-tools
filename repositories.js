@@ -58,6 +58,14 @@ export const apps = {
   remediations: {
     owner: 'RedHatInsights',
     repo: 'insights-remediations-frontend'
+  },
+  'ocp-advisor': {
+    owner: 'RedHatInsights',
+    repo: 'ocp-advisor-frontend'
+  },
+  vuln4shift: {
+    owner: 'RedHatInsights',
+    repo: 'vuln4shift-frontend'
   }
 };
 
