@@ -1,0 +1,51 @@
+{
+  "folders": [
+	{
+		"path": "."
+	},
+	{
+		"path": "apps/tasks"
+	},
+	{
+		"path": "apps/drift"
+	},
+	{
+		"path": "apps/ocp-advisor"
+	},
+	{
+		"path": "apps/compliance"
+	},
+	{
+		"path": "apps/vulnerability"
+	},
+	{
+		"path": "apps/vuln4shift"
+	},
+	{
+		"path": "apps/remediations"
+	},
+	{
+		"path": "apps/insights-dashboard"
+	},
+	{
+		"path": "apps/rhc-dashboard"
+	},
+	{
+		"path": "apps/malware"
+	},
+	{
+		"path": "apps/patch"
+	},
+	{
+		"path": "apps/inventory"
+	},
+	{
+		"path": "apps/insights-chrome"
+	},
+	{
+		"path": "apps/advisor"
+	}
+],
+"settings": {
+}
+}

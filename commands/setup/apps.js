@@ -35,7 +35,7 @@ const createBaseDirectory = async (_, { basePath }) => {
     await mkdir(basePath);
     log.success(`Base directory ${basePath} created!`);
   } else {
-    log.info('Base directory already existed');
+    log.info('Base directory already exists.');
   };
 };
 

@@ -66,6 +66,10 @@ export const apps = {
   vuln4shift: {
     owner: 'RedHatInsights',
     repo: 'vuln4shift-frontend'
+  },
+  tasks: {
+    owner: 'RedHatInsights',
+    repo: 'tasks-frontend'
   }
 };
 
