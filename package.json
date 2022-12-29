@@ -16,6 +16,7 @@
     "enquirer": "^2.3.6",
     "figures": "^4.0.1",
     "lighthouse": "^9.6.7",
+    "lodash": "^4.17.21",
     "log-symbols": "^5.1.0",
     "marked": "^4.0.16",
     "meow": "^10.1.2",
