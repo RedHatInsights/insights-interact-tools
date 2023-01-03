@@ -12,7 +12,7 @@ const inventoryApps = [
   'malware',
   'patch',
   // 'ros',
-  'rhc-dashboard',
+  'connector',
   'tasks',
   'vulnerability',
   'advisor'
@@ -52,7 +52,7 @@ export default async (_cli, { basePath }) => {
     }
 
     // TODO: let user decide to run beta or stable release
-    const cmd = `PROXY=true INSIGHTS_ENV=prod npx webpack serve --config config/dev.webpack.config.js --port ${port}`;
+    const cmd = `PROXY=true INSIGHTS_ENV=stage CHROME_ENV=stage-beta BETA=true npx webpack serve --config config/dev.webpack.config.js --port ${port}`;
     console.log(`Running ${chalk.bold(app)} on port ${port} (${cmd})...`);
 
     exec(cmd, { cwd: `${basePath}/${app}` });
@@ -60,7 +60,7 @@ export default async (_cli, { basePath }) => {
     port++;
   });
 
-  const cmd = `LOCAL_API=${localApi} PROXY=true ENVIRONMENT=prod npx webpack serve --config config/dev.webpack.config.js`;
+  const cmd = `LOCAL_API=${localApi} PROXY=true ENVIRONMENT=stage BETA=true npx webpack serve --config config/dev.webpack.config.js`;
 
   console.log(`\nRunning ${chalk.bold('inventory')} on port 1337 (${cmd})...`);
   console.log(
