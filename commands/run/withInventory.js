@@ -18,11 +18,19 @@ const inventoryApps = [
   'advisor'
 ];
 
+export const flags = {
+  debug: {
+    type: 'boolean',
+    alias: ['d'],
+    description: 'Display more information about the running processes.'
+  }
+};
+
 export const help = `
   Run multiple apps together with Inventory to test federated modules.
 `;
 
-export default async (_cli, { basePath }) => {
+export default async ({ flags: { debug } }, { basePath }) => {
   console.log('This script lets you run Inventory together with other apps that import some of the Inventory federated modules.');
   const installed = intersection(readdirSync(basePath), inventoryApps);
 
@@ -55,7 +63,11 @@ export default async (_cli, { basePath }) => {
     const cmd = `PROXY=true INSIGHTS_ENV=stage CHROME_ENV=stage-beta BETA=true npx webpack serve --config config/dev.webpack.config.js --port ${port}`;
     console.log(`Running ${chalk.bold(app)} on port ${port} (${cmd})...`);
 
-    exec(cmd, { cwd: `${basePath}/${app}` });
+    const p = exec(cmd, { cwd: `${basePath}/${app}` });
+
+    if (debug) {
+      p.stdout?.pipe(process.stdout);
+    }
 
     port++;
   });
@@ -68,5 +80,10 @@ export default async (_cli, { basePath }) => {
       '\nWait a bit before the build is finished and served. Use Ctrl+C to stop the script.'
     )
   );
-  exec(cmd, { cwd: `${basePath}/inventory` });
+
+  const i = exec(cmd, { cwd: `${basePath}/inventory` });
+
+  if (debug) {
+    i.stdout?.pipe(process.stdout);
+  }
 };
