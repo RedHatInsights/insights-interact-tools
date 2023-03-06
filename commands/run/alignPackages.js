@@ -24,7 +24,8 @@ export const help = `
 `;
 
 const introLog = () => {
-  log.plain('This will help you to align all versions of pro...');
+  log.plain(`This will help you to align all versions including the the version of the same package in your immediate dependency to the chrome version.
+   This is helpful to avoid duplicate package instances loaded into browser`);
 };
 
 const readPkgJson = (appFolder) => readJsonFile(`${appFolder}/package.json`);
@@ -65,8 +66,6 @@ const updatePackages = (updateConfigs) => {
   const configs = Object.keys(updateConfigs);
   configs.forEach((config) => {
     const { repoPath, packages } = updateConfigs[config];
-    console.log(repoPath);
-    console.log(packages);
 
     update(repoPath, packages, { isSpeficVersion: true });
   });
