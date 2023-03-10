@@ -14,10 +14,10 @@ export const help = `
   Update packages in installed applications.
 `;
 
-const updatePackagesInApp = async (app, packages) => {
+export const updatePackagesInApp = async (app, packages) => {
   for (const pkg of packages) {
     log.info('Updating ' + pkg + ' in ' + app.name);
-    await update(app.repoPath, [pkg]);
+    await update(app.repoPath, [`${pkg}@latest`]);
   }
 };
 

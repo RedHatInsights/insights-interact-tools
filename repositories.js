@@ -12,7 +12,7 @@ export const framework = {
 };
 
 export const apps = {
-  compliance: {
+  'compliance-frontend': {
     owner: 'RedHatInsights',
     repo: 'compliance-frontend',
     onPackageUpdateComplete: async (_cli, _config, { repoPath }) => {
@@ -21,29 +21,34 @@ export const apps = {
       });
     }
   },
-  patch: {
+  'insights-chrome': {
+    owner: 'RedHatInsights',
+    repo: 'insights-chrome',
+    prodBranch: 'prod-stable'
+  },
+  'patchman-ui': {
     owner: 'RedHatInsights',
     repo: 'patchman-ui'
   },
-  advisor: {
+  'insights-advisor-frontend': {
     owner: 'RedHatInsights',
     repo: 'insights-advisor-frontend',
     // $CHROME_PATH should be replaced by the withChrome command and insert the proper path
     withChrome: 'INSIGHTS_CHROME=$CHROME_PATH'
   },
-  vulnerability: {
+  'vulnerability-ui': {
     owner: 'RedHatInsights',
     repo: 'vulnerability-ui'
   },
-  malware: {
+  'malware-detection-frontend': {
     owner: 'RedHatInsights',
     repo: 'malware-detection-frontend'
   },
-  inventory: {
+  'insights-inventory-frontend': {
     owner: 'RedHatInsights',
     repo: 'insights-inventory-frontend'
   },
-  drift: {
+  'drift-frontend': {
     owner: 'RedHatInsights',
     repo: 'drift-frontend'
   },
@@ -51,11 +56,11 @@ export const apps = {
     owner: 'RedHatInsights',
     repo: 'insights-dashboard'
   },
-  'rhc-dashboard': {
+  'sed-frontend': {
     owner: 'RedHatInsights',
     repo: 'sed-frontend'
   },
-  remediations: {
+  'insights-remediations-frontend': {
     owner: 'RedHatInsights',
     repo: 'insights-remediations-frontend'
   },
@@ -67,7 +72,7 @@ export const apps = {
     owner: 'RedHatInsights',
     repo: 'vuln4shift-frontend'
   },
-  tasks: {
+  'tasks-frontend': {
     owner: 'RedHatInsights',
     repo: 'tasks-frontend'
   }
