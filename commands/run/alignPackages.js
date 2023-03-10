@@ -8,13 +8,11 @@ export const flags = {
   app: {
     type: 'string',
     alias: ['a'],
-    isRequired: true,
     description: 'The application that you are going to align with the chrome app.'
   },
   packages: {
     type: 'string',
     alias: ['p'],
-    isRequired: true,
     description: 'The package that you are going to align the versions. If you would like to align multiple packages, you can use comma separated names'
   }
 };
