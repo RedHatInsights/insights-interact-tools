@@ -1,8 +1,9 @@
-/* eslint-disable no-unused-vars */
-import { log, readJsonFile, execAsync } from '../../lib/helpers.js';
+import { log, readJsonFile, readYmlFile } from '../../lib/helpers.js';
 import { framework as frameworkRepos } from '../../repositories.js';
 import { update } from '../../lib/npmHelpers.js';
 import { checkoutBranch, pullBranch } from '../../lib/gitHelpers.js';
+import { readdirSync } from 'node:fs';
+import { configHomePath } from '../../lib/configHelpers.js';
 
 export const flags = {
   app: {
@@ -38,26 +39,54 @@ const getAppData = (apps, app) => {
   ];
 };
 
-const findFecApps = (apps, currentApp, appJson, pkgName) => {
+const findRhcApps = (apps, currentApp, appJson, pkgName) => {
   const allProdDeps = Object.keys(appJson.dependencies);
 
-  const fecDeps = allProdDeps.filter(dep =>
+  const rhcDeps = allProdDeps.filter(dep =>
     dep.startsWith('@redhat-cloud-services/frontend-components')
   );
 
-  const fecApps = [];
+  const rhcApps = [];
   apps.forEach(app => {
     const { dependencies, name } = readPkgJson(app.repoPath) || {};
 
-    if (fecDeps.includes(name) && app.name !== currentApp.name) {
-      fecApps.push({
+    if (rhcDeps.includes(name) && app.name !== currentApp.name) {
+      rhcApps.push({
         ...app,
         pkgVersion: dependencies[pkgName]
       });
     }
   });
 
-  return fecApps;
+  return rhcApps;
+};
+
+const findFecDeps = (appJson, pkgName) => {
+  const insightsToolConfig = readYmlFile(configHomePath);
+  const fecPackagesPath = `${insightsToolConfig.basePath}/${frameworkRepos['frontend-components'].repo}/packages`;
+  const fecDirs = readdirSync(fecPackagesPath).filter(dir => !dir.startsWith('.'));
+
+  const allProdDeps = Object.keys(appJson.dependencies);
+
+  const fecDeps = allProdDeps.filter(dep =>
+    dep.startsWith('@redhat-cloud-services/frontend-components')
+  );
+
+  const fecUpdates = [];
+  fecDirs.forEach(dir => {
+    const packagePath = `${fecPackagesPath}/${dir}`;
+    const { dependencies, name } = readPkgJson(packagePath);
+
+    if (dependencies && dependencies[pkgName] && fecDeps.includes(name)) {
+      fecUpdates.push({
+        repoPath: packagePath,
+        pkgVersion: dependencies[pkgName],
+        name: packagePath
+      });
+    }
+  });
+
+  return fecUpdates;
 };
 
 const updatePackages = (updateConfigs) => {
@@ -79,6 +108,7 @@ const buildUpdateConfig = (apps, app, packages) => {
     const chromeVersion = chromePkgJson.dependencies[pkgName];
     const packageToUpdate = `${pkgName}@${chromeVersion}`;
 
+    // build update config for the app itself
     if (packageJson[pkgName] !== chromeVersion) {
       updateConfig[app] = {
         ...(updateConfig[app] || {}),
@@ -90,17 +120,32 @@ const buildUpdateConfig = (apps, app, packages) => {
       };
     };
 
-    const fecDeps = findFecApps(apps, app, packageJson, pkgName);
-
-    fecDeps.forEach(fecApp => {
-      if (fecApp.pkgVersion !== chromeVersion) {
-        updateConfig[fecApp.name] = {
-          ...(updateConfig[fecApp.name] || {}),
+    // build update config for other peer dependant applications under @redhat-cloud-services namespace
+    const rhcDeps = findRhcApps(apps, app, packageJson, pkgName);
+    rhcDeps.forEach(rhcApp => {
+      if (rhcApp.pkgVersion !== chromeVersion) {
+        updateConfig[rhcApp.name] = {
+          ...(updateConfig[rhcApp.name] || {}),
           packages: [
-            ...updateConfig[fecApp.name]?.packages || [],
+            ...updateConfig[rhcApp.name]?.packages || [],
             packageToUpdate
           ],
-          repoPath: fecApp.repoPath
+          repoPath: rhcApp.repoPath
+        };
+      }
+    });
+
+    // build update config for dependant fec-packages
+    const fecDeps = findFecDeps(packageJson, pkgName);
+    fecDeps.forEach(fecDeps => {
+      if (fecDeps.pkgVersion !== chromeVersion) {
+        updateConfig[fecDeps.name] = {
+          ...(updateConfig[fecDeps.name] || {}),
+          packages: [
+            ...updateConfig[fecDeps.name]?.packages || [],
+            packageToUpdate
+          ],
+          repoPath: fecDeps.repoPath
         };
       }
     });
