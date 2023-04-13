@@ -30,12 +30,21 @@ const introLog = () => {
 const readPkgJson = (appFolder) => readJsonFile(`${appFolder}/package.json`);
 
 const getAppData = (apps, app) => {
-  const appFolder = apps.find(({ name }) => name === app)?.repoPath;
+  let pkgJson; let appFolder; let appName;
+
+  apps.forEach(({ name, repoPath }) => {
+    const appData = readPkgJson(repoPath);
+    if (appData.name === app) {
+      pkgJson = appData;
+      appFolder = repoPath;
+      appName = name;
+    }
+  });
 
   return [
-    readPkgJson(appFolder),
+    pkgJson,
     appFolder,
-    app
+    appName
   ];
 };
 
@@ -103,17 +112,22 @@ const buildUpdateConfig = (apps, app, packages) => {
 
   const updateConfig = {};
   packagesArray.forEach(pkgName => {
-    const [packageJson, folder] = getAppData(apps, app, pkgName);
+    const [packageJson, folder, appName] = getAppData(apps, app, pkgName);
     const [chromePkgJson] = getAppData(apps, frameworkRepos['insights-chrome'].repo);
     const chromeVersion = chromePkgJson.dependencies[pkgName];
     const packageToUpdate = `${pkgName}@${chromeVersion}`;
 
+    if (!appName) {
+      log.error('Please make sure to pass correct application name and the app is installed locally!');
+      process.exit(1);
+    }
+
     // build update config for the app itself
     if (packageJson[pkgName] !== chromeVersion) {
-      updateConfig[app] = {
-        ...(updateConfig[app] || {}),
+      updateConfig[appName] = {
+        ...(updateConfig[appName] || {}),
         packages: [
-          ...updateConfig[app]?.packages || [],
+          ...updateConfig[appName]?.packages || [],
           packageToUpdate
         ],
         repoPath: folder
@@ -121,7 +135,7 @@ const buildUpdateConfig = (apps, app, packages) => {
     };
 
     // build update config for other peer dependant applications under @redhat-cloud-services namespace
-    const rhcDeps = findRhcApps(apps, app, packageJson, pkgName);
+    const rhcDeps = findRhcApps(apps, appName, packageJson, pkgName);
     rhcDeps.forEach(rhcApp => {
       if (rhcApp.pkgVersion !== chromeVersion) {
         updateConfig[rhcApp.name] = {
@@ -159,11 +173,6 @@ export default async ({ flags: { app, packages } }, { apps }) => {
 
   if (!app || !packages) {
     log.error(`${!app ? 'Application name' : 'Package name(s)'} was not provided. Make sure to pass it!`);
-    process.exit(1);
-  }
-
-  if (!apps.some(element => element.name === app)) {
-    log.error('Please make sure to pass correct application name and the app is installed locally!');
     process.exit(1);
   }
 
