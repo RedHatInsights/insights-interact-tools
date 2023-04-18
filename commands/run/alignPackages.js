@@ -1,8 +1,9 @@
-/* eslint-disable no-unused-vars */
-import { log, readJsonFile, execAsync } from '../../lib/helpers.js';
+import { log, readJsonFile, readYmlFile } from '../../lib/helpers.js';
 import { framework as frameworkRepos } from '../../repositories.js';
 import { update } from '../../lib/npmHelpers.js';
 import { checkoutBranch, pullBranch } from '../../lib/gitHelpers.js';
+import { readdirSync } from 'node:fs';
+import { configHomePath } from '../../lib/configHelpers.js';
 
 export const flags = {
   app: {
@@ -29,35 +30,72 @@ const introLog = () => {
 const readPkgJson = (appFolder) => readJsonFile(`${appFolder}/package.json`);
 
 const getAppData = (apps, app) => {
-  const appFolder = apps.find(({ name }) => name === app)?.repoPath;
+  let pkgJson; let appFolder; let appName;
+
+  apps.forEach(({ name, repoPath }) => {
+    const appData = readPkgJson(repoPath);
+    if (appData.name === app) {
+      pkgJson = appData;
+      appFolder = repoPath;
+      appName = name;
+    }
+  });
 
   return [
-    readPkgJson(appFolder),
+    pkgJson,
     appFolder,
-    app
+    appName
   ];
 };
 
-const findFecApps = (apps, currentApp, appJson, pkgName) => {
+const findRhcApps = (apps, currentApp, appJson, pkgName) => {
   const allProdDeps = Object.keys(appJson.dependencies);
 
-  const fecDeps = allProdDeps.filter(dep =>
+  const rhcDeps = allProdDeps.filter(dep =>
     dep.startsWith('@redhat-cloud-services/frontend-components')
   );
 
-  const fecApps = [];
+  const rhcApps = [];
   apps.forEach(app => {
     const { dependencies, name } = readPkgJson(app.repoPath) || {};
 
-    if (fecDeps.includes(name) && app.name !== currentApp.name) {
-      fecApps.push({
+    if (rhcDeps.includes(name) && app.name !== currentApp.name) {
+      rhcApps.push({
         ...app,
         pkgVersion: dependencies[pkgName]
       });
     }
   });
 
-  return fecApps;
+  return rhcApps;
+};
+
+const findFecDeps = (appJson, pkgName) => {
+  const insightsToolConfig = readYmlFile(configHomePath);
+  const fecPackagesPath = `${insightsToolConfig.basePath}/${frameworkRepos['frontend-components'].repo}/packages`;
+  const fecDirs = readdirSync(fecPackagesPath).filter(dir => !dir.startsWith('.'));
+
+  const allProdDeps = Object.keys(appJson.dependencies);
+
+  const fecDeps = allProdDeps.filter(dep =>
+    dep.startsWith('@redhat-cloud-services/frontend-components')
+  );
+
+  const fecUpdates = [];
+  fecDirs.forEach(dir => {
+    const packagePath = `${fecPackagesPath}/${dir}`;
+    const { dependencies, name } = readPkgJson(packagePath);
+
+    if (dependencies && dependencies[pkgName] && fecDeps.includes(name)) {
+      fecUpdates.push({
+        repoPath: packagePath,
+        pkgVersion: dependencies[pkgName],
+        name: packagePath
+      });
+    }
+  });
+
+  return fecUpdates;
 };
 
 const updatePackages = (updateConfigs) => {
@@ -74,33 +112,54 @@ const buildUpdateConfig = (apps, app, packages) => {
 
   const updateConfig = {};
   packagesArray.forEach(pkgName => {
-    const [packageJson, folder] = getAppData(apps, app, pkgName);
+    const [packageJson, folder, appName] = getAppData(apps, app, pkgName);
     const [chromePkgJson] = getAppData(apps, frameworkRepos['insights-chrome'].repo);
     const chromeVersion = chromePkgJson.dependencies[pkgName];
     const packageToUpdate = `${pkgName}@${chromeVersion}`;
 
+    if (!appName) {
+      log.error('Please make sure to pass correct application name and the app is installed locally!');
+      process.exit(1);
+    }
+
+    // build update config for the app itself
     if (packageJson[pkgName] !== chromeVersion) {
-      updateConfig[app] = {
-        ...(updateConfig[app] || {}),
+      updateConfig[appName] = {
+        ...(updateConfig[appName] || {}),
         packages: [
-          ...updateConfig[app]?.packages || [],
+          ...updateConfig[appName]?.packages || [],
           packageToUpdate
         ],
         repoPath: folder
       };
     };
 
-    const fecDeps = findFecApps(apps, app, packageJson, pkgName);
-
-    fecDeps.forEach(fecApp => {
-      if (fecApp.pkgVersion !== chromeVersion) {
-        updateConfig[fecApp.name] = {
-          ...(updateConfig[fecApp.name] || {}),
+    // build update config for other peer dependant applications under @redhat-cloud-services namespace
+    const rhcDeps = findRhcApps(apps, appName, packageJson, pkgName);
+    rhcDeps.forEach(rhcApp => {
+      if (rhcApp.pkgVersion !== chromeVersion) {
+        updateConfig[rhcApp.name] = {
+          ...(updateConfig[rhcApp.name] || {}),
           packages: [
-            ...updateConfig[fecApp.name]?.packages || [],
+            ...updateConfig[rhcApp.name]?.packages || [],
             packageToUpdate
           ],
-          repoPath: fecApp.repoPath
+          repoPath: rhcApp.repoPath
+        };
+      }
+    });
+
+    // build update config for dependant fec-packages
+    const fecDeps = findFecDeps(packageJson, pkgName);
+    fecDeps.forEach(fecDeps => {
+      if (fecDeps.pkgVersion !== chromeVersion) {
+        updateConfig[fecDeps.name] = {
+          ...(updateConfig[fecDeps.name] || {}),
+          packages: [
+            ...updateConfig[fecDeps.name]?.packages || [],
+            packageToUpdate
+          ],
+          repoPath: fecDeps.repoPath
         };
       }
     });
@@ -114,11 +173,6 @@ export default async ({ flags: { app, packages } }, { apps }) => {
 
   if (!app || !packages) {
     log.error(`${!app ? 'Application name' : 'Package name(s)'} was not provided. Make sure to pass it!`);
-    process.exit(1);
-  }
-
-  if (!apps.some(element => element.name === app)) {
-    log.error('Please make sure to pass correct application name and the app is installed locally!');
     process.exit(1);
   }
 
