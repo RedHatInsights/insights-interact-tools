@@ -1,7 +1,7 @@
-import { log, readJsonFile, readYmlFile } from '../../lib/helpers.js';
+import { githubRepoUrl, log, readJsonFile, readYmlFile, prepareGitRepo } from '../../lib/helpers.js';
 import { framework as frameworkRepos } from '../../repositories.js';
 import { update } from '../../lib/npmHelpers.js';
-import { checkoutBranch, pullBranch } from '../../lib/gitHelpers.js';
+import { checkoutBranch, pullBranch, createPullRequest } from '../../lib/gitHelpers.js';
 import { readdirSync } from 'node:fs';
 import { configHomePath } from '../../lib/configHelpers.js';
 
@@ -30,21 +30,23 @@ const introLog = () => {
 const readPkgJson = (appFolder) => readJsonFile(`${appFolder}/package.json`);
 
 const getAppData = (apps, app) => {
-  let pkgJson; let appFolder; let appName;
+  let pkgJson; let appFolder; let appName; let gitRepoUrl;
 
-  apps.forEach(({ name, repoPath }) => {
+  apps.forEach(({ name, repoPath, owner, repo }) => {
     const appData = readPkgJson(repoPath);
     if (appData.name === app) {
       pkgJson = appData;
       appFolder = repoPath;
       appName = name;
+      gitRepoUrl = githubRepoUrl(owner, repo);
     }
   });
 
   return [
     pkgJson,
     appFolder,
-    appName
+    appName,
+    gitRepoUrl
   ];
 };
 
@@ -98,12 +100,21 @@ const findFecDeps = (appJson, pkgName) => {
   return fecUpdates;
 };
 
-const updatePackages = (updateConfigs) => {
+const updatePackages = async (updateConfigs) => {
   const configs = Object.keys(updateConfigs);
-  configs.forEach((config) => {
+  configs.forEach(async (config) => {
     const { repoPath, packages } = updateConfigs[config];
 
-    update(repoPath, packages, { isSpeficVersion: true });
+    const isRepoReady = prepareGitRepo(repoPath, 'align-packages');
+
+    if (isRepoReady) {
+      const isUpdateOk = await update(repoPath, packages, { isSpeficVersion: true });
+      isUpdateOk && createPullRequest(
+        repoPath,
+        'Align packages to chrome version',
+        'This PR is intended to align package versions to the chrome dependency instance version'
+      );
+    };
   });
 };
 
@@ -112,7 +123,7 @@ const buildUpdateConfig = (apps, app, packages) => {
 
   const updateConfig = {};
   packagesArray.forEach(pkgName => {
-    const [packageJson, folder, appName] = getAppData(apps, app, pkgName);
+    const [packageJson, folder, appName, gitRepoUrl] = getAppData(apps, app, pkgName);
     const [chromePkgJson] = getAppData(apps, frameworkRepos['insights-chrome'].repo);
     const chromeVersion = chromePkgJson.dependencies[pkgName];
     const packageToUpdate = `${pkgName}@${chromeVersion}`;
@@ -130,7 +141,8 @@ const buildUpdateConfig = (apps, app, packages) => {
           ...updateConfig[appName]?.packages || [],
           packageToUpdate
         ],
-        repoPath: folder
+        repoPath: folder,
+        gitRepoUrl
       };
     };
 
@@ -144,7 +156,8 @@ const buildUpdateConfig = (apps, app, packages) => {
             ...updateConfig[rhcApp.name]?.packages || [],
             packageToUpdate
           ],
-          repoPath: rhcApp.repoPath
+          repoPath: rhcApp.repoPath,
+          gitRepoUrl
         };
       }
     });
@@ -159,7 +172,8 @@ const buildUpdateConfig = (apps, app, packages) => {
             ...updateConfig[fecDeps.name]?.packages || [],
             packageToUpdate
           ],
-          repoPath: fecDeps.repoPath
+          repoPath: fecDeps.repoPath,
+          gitRepoUrl
         };
       }
     });
@@ -189,6 +203,7 @@ export default async ({ flags: { app, packages } }, { apps }) => {
 
     // TODO: automate committing and pushing into GH branch
     log.plain('All version are being updated! Please do not forget to commit the changes and push into prod');
+
     await updatePackages(appsUpdateConfig);
   }
 };
