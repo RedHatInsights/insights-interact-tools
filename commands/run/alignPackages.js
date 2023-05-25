@@ -111,12 +111,11 @@ const updatePackages = async (updateConfigs) => {
     if (isRepoReady) {
       const isUpdateOk = await update(repoPath, packages, { isSpeficVersion: true });
 
-      log.plain(isUpdateOk, repoPath);
-      // isUpdateOk && createPullRequest(
-      //   repoPath,
-      //   'Align packages to chrome version',
-      //   'This PR is intended to align package versions to the chrome dependency instance version'
-      // );
+      isUpdateOk && createPullRequest(
+        repoPath,
+        'Align packages to chrome version',
+        'This PR is intended to align package versions to the chrome dependency instance version'
+      );
     };
   });
 };
