@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { githubRepoUrl, log, readJsonFile, readYmlFile, prepareGitRepo } from '../../lib/helpers.js';
 import { framework as frameworkRepos } from '../../repositories.js';
 import { update } from '../../lib/npmHelpers.js';
@@ -105,15 +106,17 @@ const updatePackages = async (updateConfigs) => {
   configs.forEach(async (config) => {
     const { repoPath, packages } = updateConfigs[config];
 
-    const isRepoReady = prepareGitRepo(repoPath, 'align-packages');
+    const isRepoReady = prepareGitRepo(repoPath, `alignPackages-${uuidv4()}`);
 
     if (isRepoReady) {
       const isUpdateOk = await update(repoPath, packages, { isSpeficVersion: true });
-      isUpdateOk && createPullRequest(
-        repoPath,
-        'Align packages to chrome version',
-        'This PR is intended to align package versions to the chrome dependency instance version'
-      );
+
+      log.plain(isUpdateOk, repoPath);
+      // isUpdateOk && createPullRequest(
+      //   repoPath,
+      //   'Align packages to chrome version',
+      //   'This PR is intended to align package versions to the chrome dependency instance version'
+      // );
     };
   });
 };
