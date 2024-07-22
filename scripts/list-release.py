@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 conn = jira.JIRA({ 'server': args.server }, token_auth=args.token)
 
-query_result = conn.search_issues('project = RHINENG and Component in (Frontend) and Component not in (QE) and status changed to Closed after startOfDay() and labels not in (interact-internal) and resolution = Done  and status = Closed')
+query_result = conn.search_issues('project = RHINENG and Component in (Frontend) and Component not in (QE) and status changed to Closed after startOfDay() and (labels not in (interact-internal) or labels is EMPTY) and resolution = Done  and status = Closed')
 app_releases = dict()
 for issue in query_result:
     for component in issue.fields.components:
