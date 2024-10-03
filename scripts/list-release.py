@@ -1,8 +1,10 @@
 import jira
 from os import environ
 from datetime import date
+from datetime import datetime
+
 import argparse
-import sys
+import re
 
 DEFAULT_TOKEN = environ.get('JIRA_TOKEN')
 DEFAULT_SERVER = 'https://issues.redhat.com' 
@@ -27,15 +29,24 @@ for issue in query_result:
         app_releases[component.name].append(issue)
 
 today = str(date.today())
+all_version_list = conn.project_versions("RHINENG")
 for app_name in app_releases:
     release_name = 'Frontend: {} - {}'.format(app_name, today)
-    if not args.dry_run:
-        new_release = conn.create_version(name=release_name, project='RHINENG', description=app_name)
-    print('Created a new release: {}'.format(release_name))
+    existing_versions = list(
+        filter(lambda x: (re.search(release_name, x.raw["name"])), all_version_list)
+    )
+    if len(existing_versions) > 0:
+        release = existing_versions[0]
+    elif not args.dry_run:
+        release = conn.create_version(name=release_name, project='RHINENG', description=app_name)
+    print('Using following release: {}'.format(release_name))
     for issue in app_releases[app_name]:
         if not args.dry_run:
-            issue.add_field_value(field='fixVersions', value={'name':release_name})
+            issue.add_field_value(field='fixVersions', value={"id": release.raw["id"]})
         print('\t {} - {}'.format(issue.key, issue.fields.summary))
     if not args.dry_run:
-        new_release.update(released=True)
+        now = datetime.now()
+        if(now.hour >= 23):
+            release.update(released=True)
+            print("Released {}.".format(app_name))
     print()
