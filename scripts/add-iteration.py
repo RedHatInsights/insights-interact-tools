@@ -62,7 +62,7 @@ def add_fix_version(issues, iteration, status):
                 conn.add_comment(
                     issue,
                     "Issue linked with {} as it transitioned to {}".format(
-                        re.sub("\[.*", "", iteration.raw["name"]), status
+                        re.sub(r"\[.*", "", iteration.raw["name"]), status
                     ),
                 )
     else:
@@ -73,7 +73,7 @@ conn = jira.JIRA({"server": args.server}, token_auth=args.token)
 
 version_list = conn.project_versions("RHINENG")
 iterations_list = list(
-    filter(lambda x: (re.search("Iteration \d+ \[.*\]", x.raw["name"])), version_list)
+    filter(lambda x: (re.search(r"Iteration \d+ \[.*\]", x.raw["name"])), version_list)
 )
 
 matched_iteration = find_iteration(iterations_list, datetime.today())
