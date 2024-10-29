@@ -142,13 +142,20 @@ get_commit_history(){
 	local $app_name=$1
 
 	app_gh_api_url="$GH_API_URL/${apps[$app_name,"GH"]}/commits"
-	app_commit_history_response=$(
-		curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" $app_gh_api_url
-	)
-	# if [[ "$app_commit_history_response" == *"Bad credentials"* && "$app_commit_history_response" == *'"status": "401"'* ]]; then
-	# 	echo "Set GITHUB_TOKEN"
-	# 	exit 0
-	# fi
+	if [ -z "${GITHUB_TOKEN}" ]; then
+		# Github call without GH token
+		app_commit_history_response=$(
+			curl -s -H "Accept: application/vnd.github.v3+json" $app_gh_api_url
+		)
+		if [[ "$app_commit_history_response" == *"API rate limit exceeded"* ]]; then
+			return 1
+		fi
+	else
+		# Github call with GH token
+		app_commit_history_response=$(
+			curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" $app_gh_api_url
+		)
+	fi
 	app_commit_history_string=$(
 		echo $app_commit_history_response | jq -r '.[] | .sha'
 	)
@@ -213,6 +220,10 @@ for app in "${!apps[@]}"; do
 		app_released_commit=$(get_released_commit "$app_name")
 		# Get app's commit history
 		app_commit_history=($(get_commit_history "$app_name"))
+		if [ $? -eq 1 ]; then
+			echo "Github limit exceeded. Wait some time or use your GH token."
+			exit 0
+		fi
 		# Create link to the app's commits list page
 		app_commits_page_url="$GH_URL/${apps[$app_name,"GH"]}/commits/master"
 
