@@ -73,7 +73,7 @@ conn = jira.JIRA({"server": args.server}, token_auth=args.token)
 
 version_list = conn.project_versions("RHINENG")
 iterations_list = list(
-    filter(lambda x: (re.search(r"Iteration \d+ \[.*\]", x.raw["name"])), version_list)
+    filter(lambda x: (re.search(r"Iteration [0-9.]+ \[.*\]", x.raw["name"])), version_list)
 )
 
 matched_iteration = find_iteration(iterations_list, datetime.today())
