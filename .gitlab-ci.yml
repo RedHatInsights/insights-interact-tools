@@ -6,11 +6,13 @@ variables:
 stages:
   - iteration
   - release
+  - check
 
 default:
   cache:
     paths:
       - .cache/pip
+      - .cache/npm  # Add NPM cache for Node.js dependencies
   before_script:
     - python --version ; pip --version  # For debugging
     - pip install virtualenv
@@ -31,3 +33,12 @@ list-release-job:
     - python scripts/list-release.py
   tags: [shared-podman]
   when: always
+
+check-file-job-node:
+  stage: check
+  image: node:latest 
+  script:
+    - npm install
+    - node scripts/checkFileChange.js
+  tags: [shared-podman]
+  when: manual

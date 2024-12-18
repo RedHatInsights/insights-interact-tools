@@ -1,0 +1,8 @@
+{
+  "data/services/insights/advisor/deploy.yml": "110a80cd8fd6c6c1d66595e24217abdcc2a93088",
+  "data/services/insights/host-inventory/deploy-clowder.yml": "11c69cafc33d9f3122df77d23b02146f0d7dc8e2",
+  "data/services/insights/compliance/deploy.yml": "142961e9653cc0537348144014b77b6b80b6187e",
+  "advisor-frontend": "51f47b4cff901390fad28c3916088f74ed5669d0",
+  "compliance-frontend": "142961e9653cc0537348144014b77b6b80b6187e",
+  "host-inventory-frontend": "11c69cafc33d9f3122df77d23b02146f0d7dc8e2"
+}
