@@ -1,4 +1,4 @@
-import fs, { readFileSync, writeFileSync } from 'fs';
+import fs from 'fs';
 import { execSync } from 'child_process';
 
 const filesToMonitor = [
@@ -6,25 +6,27 @@ const filesToMonitor = [
     path: 'data/services/insights/advisor/deploy.yml',
     githubRepo: 'https://github.com/RedHatInsights/insights-advisor-frontend.git',
     workflowTrigger: 'workflow_dispatch',
-    appName: 'advisor-frontend' // The app name has to match in the file in app-interface !!
+    appName: 'advisor-frontend', // The app name has to match in the file in app-interface !!
+    workflowFileName: 'webpack.yml'
   },
   {
     path: 'data/services/insights/host-inventory/deploy-clowder.yml',
     githubRepo: 'https://github.com/RedHatInsights/insights-inventory-frontend.git',
     workflowTrigger: 'workflow_dispatch',
-    appName: 'host-inventory-frontend'
+    appName: 'host-inventory-frontend',
+    workflowFileName: 'main.yml'
   },
   {
     path: 'data/services/insights/compliance/deploy.yml',
     githubRepo: 'https://github.com/RedHatInsights/compliance-frontend.git',
     workflowTrigger: 'workflow_dispatch',
-    appName: 'compliance-frontend'
+    appName: 'compliance-frontend',
+    workflowFileName: 'main.yml'
   }
 ];
 
 const repoPath = '/tmp/app-interface';
-const repoUrl = 'https://gitlab.cee.redhat.com/service/app-interface.git';
-const hashesFilePath = './commit_hashes.json';
+const repoUrl = 'git@gitlab.cee.redhat.com:service/app-interface.git';
 
 async function cloneRepo (repoUrl, clonePath) {
   try {
@@ -99,23 +101,25 @@ function extractProdStableRef (filePath, appName) {
   }
 }
 
+const hashesFilePath = `${process.env.CI_PROJECT_DIR}/commit_hashes.json`;
+// const hashesFilePath = './commit_hashes.json';
+
 function loadHashes () {
   if (fs.existsSync(hashesFilePath)) {
-    return JSON.parse(readFileSync(hashesFilePath, 'utf-8'));
+    return JSON.parse(fs.readFileSync(hashesFilePath, 'utf-8'));
   }
   return {};
 }
 
 function saveHashes (hashes) {
-  writeFileSync(hashesFilePath, JSON.stringify(hashes, null, 2));
+  fs.writeFileSync(hashesFilePath, JSON.stringify(hashes, null, 2));
+  console.log(`Saved hashes to ${hashesFilePath}`);
 }
 
-function triggerGitHubWorkflow (repoUrl, commitHash) {
+function triggerGitHubWorkflow (repoUrl, commitHash, workflowFileName) {
   const repoName = repoUrl.split('/').slice(-2).join('/').replace('.git', '');
-  const workflowFileName = 'webpack.yml';
-
   try {
-    console.log(`Triggering workflow for ${repoUrl} with commit hash ${commitHash}`);
+    console.log(`Triggering workflow for ${repoUrl} with commit hash ${commitHash} using workflow file ${workflowFileName}`);
     execSync(
         `curl -X POST -H "Accept: application/vnd.github+json" \
          -H "Authorization: Bearer ${process.env.GITHUB_TOKEN}" \
@@ -125,7 +129,7 @@ function triggerGitHubWorkflow (repoUrl, commitHash) {
     );
     console.log(`Workflow triggered for ${repoUrl} with commit hash ${commitHash}`);
   } catch (err) {
-    console.error('Error triggering GitHub workflow:', err.message);
+    console.error(`Error triggering GitHub workflow for ${repoUrl} with file ${workflowFileName}:`, err.message);
   }
 }
 async function main () {
@@ -133,7 +137,7 @@ async function main () {
 
   const hashes = loadHashes();
 
-  for (const { path, appName, githubRepo } of filesToMonitor) {
+  for (const { path, appName, githubRepo, workflowFileName } of filesToMonitor) {
     const filePath = `${repoPath}/${path}`;
 
     if (!fs.existsSync(filePath)) {
@@ -149,7 +153,7 @@ async function main () {
       // Check if the hash is different from the stored hash
       if (hashes[appName] !== commitHash) {
         console.log(`Hash has changed for ${appName}. Triggering GitHub workflow.`);
-        triggerGitHubWorkflow(githubRepo, commitHash);
+        triggerGitHubWorkflow(githubRepo, commitHash, workflowFileName);
         hashes[appName] = commitHash; // Update the stored hash
       } else {
         console.log(`Hash has not changed for ${appName}. No workflow triggered.`);
@@ -159,6 +163,6 @@ async function main () {
     }
   }
 
-  saveHashes(hashes); // Save updated hashes
+  saveHashes(hashes);
 }
 main();
