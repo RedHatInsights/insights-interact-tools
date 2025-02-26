@@ -1,9 +1,13 @@
 #!/bin/bash
 
-# Add your github token here or export it as env variable
-# GITHUB_TOKEN=""
-# Same for GitLab's API url - app's interface repository with all apps
+# NEEDED:
+# Add GitLab's API url here or export it as an env variable
 # GITLAB_API_URL=""
+# OPTIONAL:
+# Add your github token here or export it as an env variable if encounter
+#  'exceeded limit' error
+# (60 requests/hour without token, 5000 requests/hour with token)
+# GITHUB_TOKEN=""
 
 # Cfg
 GH_API_URL="https://api.github.com/repos/RedHatInsights"
@@ -13,6 +17,7 @@ HASH_REGEX="\b[a-f0-9]{40}\b"
 APPS_TO_BE_RELEASED_COUNT=0
 SHOW_ALL_APPS=0
 VERBOSE=0
+KEYWORD=""
 
 # Paths to Apps' details
 declare -A apps
@@ -80,9 +85,10 @@ print_help(){
 	echo "Usage: ./check-releases [options]"
 	echo ""
 	echo "Options:"
-	echo "  -a, --all	Display all apps, even those with 0 commits to be released."
-	echo "  -v, --verbose	Display detailed information."
-	echo "  -h, --help	Display this message."
+	echo "  -f, --filter KEYWORD	Filter apps to be checked by a keyword."
+	echo "  -a, --all		Display all apps, even those with 0 commits to be released."
+	echo "  -v, --verbose		Display detailed information."
+	echo "  -h, --help		Display this help message."
 	echo ""
 }
 
@@ -173,7 +179,7 @@ get_released_commit(){
 
 
 # Parameters handler
-while getopts "vah-:" opt; do
+while getopts "vahf:-:" opt; do
 	case $opt in
 		a)
 			let "SHOW_ALL_APPS=1"
@@ -184,6 +190,9 @@ while getopts "vah-:" opt; do
 		h)
 			print_help
 			exit 0
+			;;
+		f)
+			KEYWORD="$OPTARG"
 			;;
 		-)
 			case "${OPTARG}" in
@@ -214,51 +223,53 @@ longest_app_name_length=$(get_longest_app_name_length)
 # MAIN
 for app in "${!apps[@]}"; do
 	IFS=',' read -r app_name repo <<< "$app"
-	if [[ "$repo" == "GL" ]]; then
+	if [[ "$KEYWORD" == "" ]] || echo "${app_name,,}" | grep -q -E "${KEYWORD,,}"; then
+		if [[ "$repo" == "GL" ]]; then
 
-		# Get app's last commit deployed in app-interface
-		app_released_commit=$(get_released_commit "$app_name")
-		# Get app's commit history
-		app_commit_history=($(get_commit_history "$app_name"))
-		if [ $? -eq 1 ]; then
-			echo "Github limit exceeded. Wait some time or use your GH token."
-			exit 0
-		fi
-		# Create link to the app's commits list page
-		app_commits_page_url="$GH_URL/${apps[$app_name,"GH"]}/commits/master"
+			# Get app's last commit deployed in app-interface
+			app_released_commit=$(get_released_commit "$app_name")
+			# Get app's commit history
+			app_commit_history=($(get_commit_history "$app_name"))
+			if [ $? -eq 1 ]; then
+				echo "Github limit exceeded. Wait some time or use your GH token."
+				exit 0
+			fi
+			# Create link to the app's commits list page
+			app_commits_page_url="$GH_URL/${apps[$app_name,"GH"]}/commits/master"
 
-		# Check if there are any commits to be deployed
-		for ((i=0; i<${#app_commit_history[@]}; i++)); do
+			# Check if there are any commits to be deployed
+			for ((i=0; i<${#app_commit_history[@]}; i++)); do
 
-			# If last released hash was found in commit history
-			if [[ "$app_released_commit" == "${app_commit_history[i]}" ]]; then
-				# If match is on the last commit - everyting is released
-				if [[ $i == 0 ]]; then
-					if [[ $SHOW_ALL_APPS == 1 ]]; then
+				# If last released hash was found in commit history
+				if [[ "$app_released_commit" == "${app_commit_history[i]}" ]]; then
+					# If match is on the last commit - everyting is released
+					if [[ $i == 0 ]]; then
+						if [[ $SHOW_ALL_APPS == 1 ]]; then
+							print_result_header "$app_name" $i $app_commits_page_url
+						fi
+
+					# If there are commits to be released
+					else
 						print_result_header "$app_name" $i $app_commits_page_url
-					fi
+						let "APPS_TO_BE_RELEASED_COUNT++"
 
-				# If there are commits to be released
-				else
-					print_result_header "$app_name" $i $app_commits_page_url
-					let "APPS_TO_BE_RELEASED_COUNT++"
-
-					# Display extended output with detailed info
-					if [[ $VERBOSE == 1 ]]; then
-						print_result_details "$app_name" $i "${app_commit_history[@]}"
+						# Display extended output with detailed info
+						if [[ $VERBOSE == 1 ]]; then
+							print_result_details "$app_name" $i "${app_commit_history[@]}"
+						fi
 					fi
+					break
 				fi
-				break
-			fi
-			
-			# If last released hash wasn't found in commit history
-			if [[ $i == $(( ${#app_commit_history[@]} - 1 )) ]]; then
-				print_result_header "$app_name" "$i+" "$app_commits_page_url"
-				let "APPS_TO_BE_RELEASED_COUNT++"
-			fi
+				
+				# If last released hash wasn't found in commit history
+				if [[ $i == $(( ${#app_commit_history[@]} - 1 )) ]]; then
+					print_result_header "$app_name" "$i+" "$app_commits_page_url"
+					let "APPS_TO_BE_RELEASED_COUNT++"
+				fi
 
-		done
+			done
 
+		fi
 	fi
 done
 
