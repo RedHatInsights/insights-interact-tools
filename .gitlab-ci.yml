@@ -11,7 +11,16 @@ default:
       - .cache/pip
       - .cache/npm
   before_script:
-    - python --version ; pip --version  # For debugging
+    - |
+      # Only run Python-related commands for other jobs (not for Sentry automation)
+      if [ "$RUN_OTHER_PIPELINE" == "true" ]; then
+        echo "Installing Python for other jobs..."
+        apt-get update && apt-get install -y python3 python3-pip  # Install Python and pip
+        python3 --version  # Verify installation
+        pip3 --version  # Verify pip installation
+      else
+        echo "Sentry pipeline: Skipping Python installation"
+      fi
 
 # Sentry Automation Pipeline (Node.js jobs)
 generate-commit-hashes:
