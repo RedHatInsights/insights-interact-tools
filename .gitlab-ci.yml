@@ -12,7 +12,7 @@ default:
   cache:
     paths:
       - .cache/pip
-      - .cache/npm  # Add NPM cache for Node.js dependencies
+      - .cache/npm
   before_script:
     - python --version ; pip --version  # For debugging
     - pip install virtualenv
@@ -20,12 +20,32 @@ default:
     - source venv/bin/activate
     - pip install jira
 
+workflow:
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'  # Ensure pipeline runs only for the main branch
+
+# The 'checkfile' job that runs twice a day
+check-file-job-node:
+  stage: check
+  image: node:latest
+  script:
+    - npm install
+    - node scripts/checkFileChange.js
+  tags: [shared-podman]
+  when: manual
+  schedule:
+    - cron: '0 13 * * *'  # Run at 8 AM EST (1 PM UTC)
+    - cron: '0 21 * * *'  # Run at 4 PM EST (9 PM UTC)
+
+# The jobs for iteration and release
 add-iteration-job:
   stage: iteration
   script:
     - python scripts/add-iteration.py
   tags: [shared-podman]
   when: always
+  schedule:
+    - cron: '0 0 * * *'  # Run once a day at 4pm (EST)
 
 list-release-job:
   stage: release
@@ -33,12 +53,5 @@ list-release-job:
     - python scripts/list-release.py
   tags: [shared-podman]
   when: always
-
-check-file-job-node:
-  stage: check
-  image: node:latest 
-  script:
-    - npm install
-    - node scripts/checkFileChange.js
-  tags: [shared-podman]
-  when: manual
+  schedule:
+    - cron: '0 21 * * *'  # Run once a day 4pm (EST)
