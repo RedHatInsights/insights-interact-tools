@@ -1,14 +1,10 @@
-image: python:latest
-
-variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-
 stages:
   - generate
   - check
   - iteration
   - release
 
+# Default job configurations (if needed)
 default:
   cache:
     paths:
@@ -16,10 +12,6 @@ default:
       - .cache/npm
   before_script:
     - python --version ; pip --version  # For debugging
-    - pip install virtualenv
-    - virtualenv venv
-    - source venv/bin/activate
-    - pip install jira
 
 # Sentry Automation Pipeline
 generate-commit-hashes:
@@ -43,7 +35,8 @@ generate-commit-hashes:
     paths:
       - commit_hashes.json
     expire_in: 90 days
-  dependencies: []
+  rules:
+    - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
 
 check-file-job-node:
   stage: check
@@ -63,9 +56,9 @@ check-file-job-node:
       - commit_hashes.json
     expire_in: 90 days
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'  # Only run on the main branch
+    - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
 
-# Other Jobs Pipeline
+# Other Jobs Pipeline (iteration, release, etc.)
 add-iteration-job:
   stage: iteration
   script:
@@ -73,7 +66,7 @@ add-iteration-job:
   tags: [shared-podman]
   when: always
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'  # Only run on the main branch
+    - if: '$RUN_OTHER_PIPELINE == "true"'  # Only run if other jobs pipeline is triggered by the variable
 
 list-release-job:
   stage: release
@@ -82,4 +75,4 @@ list-release-job:
   tags: [shared-podman]
   when: always
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'  # Only run on the main branch
+    - if: '$RUN_OTHER_PIPELINE == "true"'  # Only run if other jobs pipeline is triggered by the variable
