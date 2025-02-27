@@ -4,9 +4,10 @@ variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 stages:
+  - generate
+  - check
   - iteration
   - release
-  - check
 
 default:
   cache:
@@ -20,17 +21,65 @@ default:
     - source venv/bin/activate
     - pip install jira
 
-# This is for the checkfile pipeline (runs independently)
+# Sentry Automation Pipeline (only these jobs should run for Sentry automation)
+sentry-automation:
+  workflow:
+    rules:
+      - if: '$CI_COMMIT_REF_NAME == "main"'  # Ensure only on main branch
+  stages:
+    - generate
+    - check
+
+generate-commit-hashes:
+  stage: generate
+  image: node:latest
+  tags:
+    - shared-podman
+  script:
+    - |
+      if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
+        -o commit_hashes.json; then
+        echo "Existing commit_hashes.json retrieved."
+      else
+        echo "No previous commit_hashes.json found. Initializing."
+        echo "{}" > commit_hashes.json
+      fi
+    - echo "Contents of commit_hashes.json after generation:"
+    - cat commit_hashes.json
+  artifacts:
+    paths:
+      - commit_hashes.json
+    expire_in: 90 days
+  dependencies: []
+
 check-file-job-node:
   stage: check
   image: node:latest
+  tags:
+    - shared-podman
+  dependencies:
+    - generate-commit-hashes
   script:
-    - npm install
+    - echo "Contents of commit_hashes.json before processing:"
+    - cat commit_hashes.json
     - node scripts/checkFileChange.js
-  tags: [shared-podman]
-  when: manual  # Can still manually trigger this job, but it will also run according to the schedule
+    - echo "Contents of commit_hashes.json after processing:"
+    - cat commit_hashes.json
+  artifacts:
+    paths:
+      - commit_hashes.json
+    expire_in: 90 days
 
-# Other jobs (iteration, release) - run together in their own pipeline
+# Other Jobs Pipeline (iteration, release, etc.)
+other-jobs-pipeline:
+  workflow:
+    rules:
+      - if: '$CI_COMMIT_REF_NAME == "main"'  # Ensure only on main branch
+  stages:
+    - iteration
+    - release
+
 add-iteration-job:
   stage: iteration
   script:
