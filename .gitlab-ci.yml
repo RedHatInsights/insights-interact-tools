@@ -20,11 +20,7 @@ default:
     - source venv/bin/activate
     - pip install jira
 
-workflow:
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'  # Ensure pipeline runs only for the main branch
-
-# The 'checkfile' job that runs twice a day
+# This is for the checkfile pipeline (runs independently)
 check-file-job-node:
   stage: check
   image: node:latest
@@ -32,9 +28,9 @@ check-file-job-node:
     - npm install
     - node scripts/checkFileChange.js
   tags: [shared-podman]
-  when: manual
+  when: manual  # Can still manually trigger this job, but it will also run according to the schedule
 
-# The jobs for iteration and release
+# Other jobs (iteration, release) - run together in their own pipeline
 add-iteration-job:
   stage: iteration
   script:
