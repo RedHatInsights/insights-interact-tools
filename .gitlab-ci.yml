@@ -21,15 +21,7 @@ default:
     - source venv/bin/activate
     - pip install jira
 
-# Sentry Automation Pipeline (only these jobs should run for Sentry automation)
-sentry-automation:
-  workflow:
-    rules:
-      - if: '$CI_COMMIT_REF_NAME == "main"'  # Ensure only on main branch
-  stages:
-    - generate
-    - check
-
+# Sentry Automation Pipeline
 generate-commit-hashes:
   stage: generate
   image: node:latest
@@ -70,22 +62,18 @@ check-file-job-node:
     paths:
       - commit_hashes.json
     expire_in: 90 days
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'  # Only run on the main branch
 
-# Other Jobs Pipeline (iteration, release, etc.)
-other-jobs-pipeline:
-  workflow:
-    rules:
-      - if: '$CI_COMMIT_REF_NAME == "main"'  # Ensure only on main branch
-  stages:
-    - iteration
-    - release
-
+# Other Jobs Pipeline
 add-iteration-job:
   stage: iteration
   script:
     - python scripts/add-iteration.py
   tags: [shared-podman]
   when: always
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'  # Only run on the main branch
 
 list-release-job:
   stage: release
@@ -93,3 +81,5 @@ list-release-job:
     - python scripts/list-release.py
   tags: [shared-podman]
   when: always
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'  # Only run on the main branch
