@@ -33,9 +33,6 @@ check-file-job-node:
     - node scripts/checkFileChange.js
   tags: [shared-podman]
   when: manual
-  schedule:
-    - cron: '0 13 * * *'  # Run at 8 AM EST (1 PM UTC)
-    - cron: '0 21 * * *'  # Run at 4 PM EST (9 PM UTC)
 
 # The jobs for iteration and release
 add-iteration-job:
@@ -44,8 +41,6 @@ add-iteration-job:
     - python scripts/add-iteration.py
   tags: [shared-podman]
   when: always
-  schedule:
-    - cron: '0 0 * * *'  # Run once a day at 4pm (EST)
 
 list-release-job:
   stage: release
@@ -53,5 +48,3 @@ list-release-job:
     - python scripts/list-release.py
   tags: [shared-podman]
   when: always
-  schedule:
-    - cron: '0 21 * * *'  # Run once a day 4pm (EST)
