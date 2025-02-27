@@ -13,10 +13,10 @@ default:
   before_script:
     - python --version ; pip --version  # For debugging
 
-# Sentry Automation Pipeline
+# Sentry Automation Pipeline (Node.js jobs)
 generate-commit-hashes:
   stage: generate
-  image: node:latest
+  image: node:latest  # Using Node.js Docker image
   tags:
     - shared-podman
   script:
@@ -35,12 +35,13 @@ generate-commit-hashes:
     paths:
       - commit_hashes.json
     expire_in: 90 days
+  dependencies: []
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
 
 check-file-job-node:
   stage: check
-  image: node:latest
+  image: node:latest  # Node.js Docker image for Sentry automation
   tags:
     - shared-podman
   dependencies:
@@ -58,9 +59,10 @@ check-file-job-node:
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
 
-# Other Jobs Pipeline (iteration, release, etc.)
+# Other Jobs Pipeline (Python jobs)
 add-iteration-job:
   stage: iteration
+  image: python:3.9  # Use Python image for other jobs
   script:
     - python scripts/add-iteration.py
   tags: [shared-podman]
@@ -70,6 +72,7 @@ add-iteration-job:
 
 list-release-job:
   stage: release
+  image: python:3.9  # Use Python image for other jobs
   script:
     - python scripts/list-release.py
   tags: [shared-podman]
