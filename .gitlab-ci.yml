@@ -30,7 +30,7 @@ generate-commit-hashes:
     - shared-podman
   script:
     - |
-      if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+      if curl -Lk --header "JOB-TOKEN: $GITLAB_API_TOKEN" \
         "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
         -o commit_hashes.json; then
         echo "Existing commit_hashes.json retrieved."
