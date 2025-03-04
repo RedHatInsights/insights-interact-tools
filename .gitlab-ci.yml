@@ -30,15 +30,17 @@ generate-commit-hashes:
     - shared-podman
   script:
     - |
-      # Check if the COMMIT_HASHES_JSON variable exists or if the file is empty
-      if [ ! -s commit_hashes.json ]; then
-        echo "No previous commit_hashes.json found. Initializing."
-        echo "{}" > commit_hashes.json  # Initialize the file if not present or empty
-      else
+      if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
+        -o commit_hashes.json; then
         echo "Existing commit_hashes.json retrieved."
+      else
+        echo "No previous commit_hashes.json found. Initializing."
+        echo "{}" > commit_hashes.json
       fi
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
+
   artifacts:
     paths:
       - commit_hashes.json  # Save the artifact for use in next jobs
