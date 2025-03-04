@@ -14,6 +14,8 @@
 #  * Ensure "nyc" is configuerd to output to "coverage-cypress"
 #  * Ensure there is a npm "test:ct" script
 #
+set -e
+
 case $(uname) in
 Darwin)
 	export CODECOV_BIN="https://uploader.codecov.io/latest/macos/codecov"
