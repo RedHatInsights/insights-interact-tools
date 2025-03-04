@@ -30,40 +30,38 @@ generate-commit-hashes:
     - shared-podman
   script:
     - |
-      if curl -Lk --header "JOB-TOKEN: $GITLAB_API_TOKEN" \
-        "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
-        -o commit_hashes.json; then
-        echo "Existing commit_hashes.json retrieved."
-      else
+      # Check if the COMMIT_HASHES_JSON variable exists or if the file is empty
+      if [ ! -s commit_hashes.json ]; then
         echo "No previous commit_hashes.json found. Initializing."
-        echo "{}" > commit_hashes.json
+        echo "{}" > commit_hashes.json  # Initialize the file if not present or empty
+      else
+        echo "Existing commit_hashes.json retrieved."
       fi
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
   artifacts:
     paths:
-      - commit_hashes.json
+      - commit_hashes.json  # Save the artifact for use in next jobs
     expire_in: 90 days
-  dependencies: []
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
 
 check-file-job-node:
   stage: check
-  image: node:latest  # Node.js Docker image for Sentry automation
+  image: node:latest
   tags:
     - shared-podman
   dependencies:
-    - generate-commit-hashes
+    - generate-commit-hashes  # Use the artifact from the previous job
   script:
     - echo "Contents of commit_hashes.json before processing:"
     - cat commit_hashes.json
-    - node scripts/checkFileChange.js
+    - node scripts/checkFileChange.js  # Modify the contents of commit_hashes.json
     - echo "Contents of commit_hashes.json after processing:"
-    - cat commit_hashes.json
+    - cat commit_hashes.json  # Print the updated contents
   artifacts:
     paths:
-      - commit_hashes.json
+      - commit_hashes.json  # Save the updated artifact for the next job
     expire_in: 90 days
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
