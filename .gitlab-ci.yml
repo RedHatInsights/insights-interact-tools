@@ -49,11 +49,11 @@ generate-commit-hashes:
       echo "CI_PROJECT_URL: $CI_PROJECT_URL"
       echo "CI_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME"
       echo "CI_JOB_TOKEN: $CI_JOB_TOKEN"
-      echo "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node"
+      echo "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json"
 
       # Attempt to fetch the artifact
       if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-      "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
+      "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json" \
        -o commit_hashes.json; then
         echo "Existing commit_hashes.json retrieved."
       else
