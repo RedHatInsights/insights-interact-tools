@@ -39,7 +39,7 @@ generate-commit-hashes:
       echo "CI_PROJECT_ID: $CI_PROJECT_ID"
 
       # Build the artifact URL
-      ARTIFACT_URL="https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node"
+      ARTIFACT_URL="https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=generate-commit-hashes"
       echo "Artifact URL: $ARTIFACT_URL"
 
       # Attempt to fetch the artifact
