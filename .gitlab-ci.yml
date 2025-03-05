@@ -52,20 +52,13 @@ generate-commit-hashes:
       
 
       # Attempt to fetch the artifact
-       if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
-        -o commit_hashes.json; then
-        echo "Existing commit_hashes.json retrieved."
-      else
-        echo "No previous commit_hashes.json found. Initializing as empty object."
-        echo "{}" > commit_hashes.json
-      fi
-
+      echo "No previous commit_hashes.json found. Initializing as empty object."
+      echo "{}" > commit_hashes.json
+   
 
       # Check the contents of the file
       if ! jq empty commit_hashes.json 2>/dev/null; then
         echo "Invalid JSON or sign-in page detected, resetting to empty object."
-        echo "{}" > commit_hashes.json
         cat commit_hashes.json
         exit 1  # Exit the job to prevent proceeding further
       fi
