@@ -43,7 +43,7 @@ generate-commit-hashes:
       echo "Artifact URL: $ARTIFACT_URL"
 
       # Attempt to fetch the artifact
-      if curl -Lk --header "Authorization: Bearer $CI_JOB_TOKEN" "$ARTIFACT_URL" -o commit_hashes.json; then
+      if curl -Lk --header "Authorization: Bearer $PAT_TOKEN" "$ARTIFACT_URL" -o commit_hashes.json; then
       echo "Existing commit_hashes.json retrieved."
       else
         echo "No previous commit_hashes.json found. Initializing as empty object."
