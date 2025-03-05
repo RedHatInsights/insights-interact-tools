@@ -25,7 +25,7 @@ default:
 # Sentry Automation Pipeline (Node.js jobs)
 generate-commit-hashes:
   stage: generate
-  image: node:latest  # Using Node.js Docker image
+  image: node:latest
   tags:
     - shared-podman
   script:
@@ -33,22 +33,25 @@ generate-commit-hashes:
       # Print the values of important variables for debugging
       echo "CI_PROJECT_URL: $CI_PROJECT_URL"
       echo "CI_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME"
-    
-      if curl -L --header "Authorization: Bearer $CI_JOB_TOKEN" \
-      "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
-      -o commit_hashes.json; then
+      echo "CI_JOB_TOKEN: [MASKED]"
+
+      # Build the artifact URL
+      ARTIFACT_URL="https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node"
+      echo "Artifact URL: $ARTIFACT_URL"
+
+      # Attempt to fetch the artifact
+      if curl -L --header "Authorization: Bearer $CI_JOB_TOKEN" "$ARTIFACT_URL" -o commit_hashes.json; then
         echo "Existing commit_hashes.json retrieved."
       else
         echo "No previous commit_hashes.json found. Initializing as empty object."
-        echo "{}" > commit_hashes.json  # Initialize as empty object
+        echo "{}" > commit_hashes.json
       fi
 
-
-      # Check if the content is a valid JSON
+      # Check the contents of the file
       if ! jq empty commit_hashes.json 2>/dev/null; then
         echo "Invalid JSON or sign-in page detected, resetting to empty object."
-        cat commit_hashes.json  # Output the contents to verify
-        echo "{}" > commit_hashes.json  # Reset to an empty object if invalid JSON
+        echo "{}" > commit_hashes.json
+        cat commit_hashes.json
         exit 1  # Exit the job to prevent proceeding further
       fi
 
@@ -57,11 +60,10 @@ generate-commit-hashes:
 
   artifacts:
     paths:
-      - commit_hashes.json  # Save the artifact for use in next jobs
+      - commit_hashes.json
     expire_in: 90 days
   rules:
-    - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
-
+    - if: '$RUN_SENTRY_PIPELINE == "true"'
 check-file-job-node:
   stage: check
   image: node:latest
