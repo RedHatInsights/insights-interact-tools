@@ -49,6 +49,7 @@ generate-commit-hashes:
       echo "CI_PROJECT_URL: $CI_PROJECT_URL"
       echo "CI_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME"
       echo "CI_JOB_TOKEN: $CI_JOB_TOKEN"
+      echo "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node"
       
       # Attempt to fetch the artifact
       if curl -Lk --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
