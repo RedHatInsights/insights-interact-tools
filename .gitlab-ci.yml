@@ -47,8 +47,8 @@ generate-commit-hashes:
       # Check if the content is a valid JSON
       if ! jq empty commit_hashes.json 2>/dev/null; then
         echo "Invalid JSON or sign-in page detected, resetting to empty object."
-        echo "{}" > commit_hashes.json
-        - cat commit_hashes.json
+        echo "{}" > commit_hashes.json  # Reset to an empty object if invalid JSON
+        cat commit_hashes.json  # Output the contents to verify
         exit 1  # Exit the job to prevent proceeding further
       fi
 
