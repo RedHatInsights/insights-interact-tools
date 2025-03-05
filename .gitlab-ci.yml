@@ -35,7 +35,7 @@ generate-commit-hashes:
       echo "CI_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME"
       
       # Try to fetch the artifact
-      if curl -Lk --header "Authorization: Bearer $CI_JOB_TOKEN" \
+      if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
         "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
         -o commit_hashes.json; then
         echo "Existing commit_hashes.json retrieved."
@@ -47,8 +47,8 @@ generate-commit-hashes:
       # Check if the content is a valid JSON
       if ! jq empty commit_hashes.json 2>/dev/null; then
         echo "Invalid JSON or sign-in page detected, resetting to empty object."
-        echo "{}" > commit_hashes.json  # Reset to an empty object if invalid JSON
         cat commit_hashes.json  # Output the contents to verify
+        echo "{}" > commit_hashes.json  # Reset to an empty object if invalid JSON
         exit 1  # Exit the job to prevent proceeding further
       fi
 
