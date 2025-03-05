@@ -63,7 +63,6 @@ generate-commit-hashes:
       # Check the contents of the file
       if ! jq empty commit_hashes.json 2>/dev/null; then
         echo "Invalid JSON or sign-in page detected, resetting to empty object."
-        echo "{}" > commit_hashes.json
         cat commit_hashes.json
         exit 1  # Exit the job to prevent proceeding further
       fi
