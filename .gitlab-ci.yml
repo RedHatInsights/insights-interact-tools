@@ -4,6 +4,9 @@ stages:
   - iteration
   - release
 
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
 # Default job configurations (if needed)
 default:
   cache:
@@ -14,14 +17,26 @@ default:
     - |
       # Only run Python-related commands for iteration or release jobs
       if [ "$RELEASE_JOB" == "true" ] || [ "$ITERATION_JOB" == "true" ]; then
-        echo "Installing Python for iteration or release jobs..."
-        apt-get update && apt-get install -y python3 python3-pip  # Install Python and pip
-        python3 --version  # Verify installation
-        pip3 --version  # Verify pip installation
+        echo "Installing Python and setting up virtual environment for iteration or release jobs..."
+        
+        # Debugging Python version and pip version
+        python --version
+        pip --version
+        
+        # Install virtualenv
+        pip install virtualenv
+        
+        # Create a virtual environment
+        virtualenv venv
+        
+        # Activate the virtual environment
+        source venv/bin/activate
+        
+        # Install Jira package
+        pip install jira
       else
         echo "Skipping Python installation (not iteration or release job)"
       fi
-
 # Sentry Automation Pipeline (Node.js jobs)
 generate-commit-hashes:
   stage: generate
@@ -88,10 +103,10 @@ check-file-job-node:
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
 
-# Other Jobs Pipeline (Python jobs)
+# Other JIRA Pipeline (Python jobs)
 add-iteration-job:
   stage: iteration
-  image: python:3.9  # Use Python image for other jobs
+  image: python:3
   script:
     - python scripts/add-iteration.py
   tags: [shared-podman]
@@ -101,7 +116,7 @@ add-iteration-job:
 
 list-release-job:
   stage: release
-  image: python:3.9  # Use Python image for other jobs
+  image: python:3
   script:
     - python scripts/list-release.py
   tags: [shared-podman]
