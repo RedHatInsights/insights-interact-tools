@@ -30,6 +30,11 @@ generate-commit-hashes:
     - shared-podman
   script:
     - |
+      # Print the values of important variables for debugging
+      echo "CI_PROJECT_URL: $CI_PROJECT_URL"
+      echo "CI_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME"
+      echo "CI_JOB_TOKEN: $CI_JOB_TOKEN"
+      
       if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
         "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
         -o commit_hashes.json; then
@@ -40,6 +45,7 @@ generate-commit-hashes:
       fi
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
+
 
   artifacts:
     paths:
