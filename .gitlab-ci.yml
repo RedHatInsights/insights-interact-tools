@@ -52,8 +52,8 @@ generate-commit-hashes:
       echo "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node"
 
       # Attempt to fetch the artifact
-      if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
-      "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
+      if curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+       "https://gitlab.cee.redhat.com/team-interact/insights-interact-tools/-/jobs/artifacts/main/raw/commit_hashes.json?job=check-file-job-node"\
        -o commit_hashes.json; then
         echo "Existing commit_hashes.json retrieved."
       else
