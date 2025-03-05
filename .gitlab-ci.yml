@@ -12,14 +12,14 @@ default:
       - .cache/npm
   before_script:
     - |
-      # Only run Python-related commands for other jobs (not for Sentry automation)
-      if [ "$RUN_OTHER_PIPELINE" == "true" ]; then
-        echo "Installing Python for other jobs..."
+      # Only run Python-related commands for iteration or release jobs
+      if [ "$RELEASE_JOB" == "true" ] || [ "$ITERATION_JOB" == "true" ]; then
+        echo "Installing Python for iteration or release jobs..."
         apt-get update && apt-get install -y python3 python3-pip  # Install Python and pip
         python3 --version  # Verify installation
         pip3 --version  # Verify pip installation
       else
-        echo "Sentry pipeline: Skipping Python installation"
+        echo "Skipping Python installation (not iteration or release job)"
       fi
 
 # Sentry Automation Pipeline (Node.js jobs)
