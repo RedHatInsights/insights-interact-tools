@@ -97,7 +97,7 @@ add-iteration-job:
   tags: [shared-podman]
   when: always
   rules:
-    - if: '$RUN_OTHER_PIPELINE == "true"'  # Only run if other jobs pipeline is triggered by the variable
+    - if: '$ITERATION_JOB == "true"'  # Only run if other jobs pipeline is triggered by the variable
 
 list-release-job:
   stage: release
@@ -107,4 +107,4 @@ list-release-job:
   tags: [shared-podman]
   when: always
   rules:
-    - if: '$RUN_OTHER_PIPELINE == "true"'  # Only run if other jobs pipeline is triggered by the variable
+    - if: '$RELEASE_JOB == "true"'  # Only run if other jobs pipeline is triggered by the variable
