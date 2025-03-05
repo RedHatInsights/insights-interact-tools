@@ -33,16 +33,17 @@ generate-commit-hashes:
       # Print the values of important variables for debugging
       echo "CI_PROJECT_URL: $CI_PROJECT_URL"
       echo "CI_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME"
-      
-      # Try to fetch the artifact
-      if curl -Lk --header "Authorization: Bearer $CI_JOB_TOKEN" \
-      "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
-      -o commit_hashes.json
+
+      # Correct URL format for accessing the artifact using GitLab's API
+      ARTIFACT_URL="https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node"
+    
+      if curl --header "Authorization: Bearer $CI_JOB_TOKEN" "$ARTIFACT_URL" -o commit_hashes.json; then
         echo "Existing commit_hashes.json retrieved."
       else
         echo "No previous commit_hashes.json found. Initializing as empty object."
         echo "{}" > commit_hashes.json  # Initialize as empty object
       fi
+
 
       # Check if the content is a valid JSON
       if ! jq empty commit_hashes.json 2>/dev/null; then
