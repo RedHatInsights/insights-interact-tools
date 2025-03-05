@@ -30,10 +30,13 @@ generate-commit-hashes:
     - shared-podman
   script:
     - |
-      # Print the values of important variables for debugging
+      # Debugging important variables
       echo "CI_PROJECT_URL: $CI_PROJECT_URL"
       echo "CI_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME"
       echo "CI_JOB_TOKEN: [MASKED]"
+      
+      # Ensure CI_PROJECT_ID is correct
+      echo "CI_PROJECT_ID: $CI_PROJECT_ID"
 
       # Build the artifact URL
       ARTIFACT_URL="https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node"
