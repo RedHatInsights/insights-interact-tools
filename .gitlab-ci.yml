@@ -45,37 +45,21 @@ generate-commit-hashes:
     - shared-podman
   script:
     - |
-      # Debugging important variables
-      echo "CI_PROJECT_URL: $CI_PROJECT_URL"
-      echo "CI_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME"
-      echo "CI_JOB_TOKEN: $CI_JOB_TOKEN"
-      echo "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node"
-
-      # Attempt to fetch the artifact
       if curl -Lk --header "JOB-TOKEN: $CI_JOB_TOKEN" \
         "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/raw/commit_hashes.json?job=check-file-job-node" \
         -o commit_hashes.json; then
         echo "Existing commit_hashes.json retrieved."
-
       else
         echo "No previous commit_hashes.json found. Initializing."
         echo "{}" > commit_hashes.json
       fi
-
-      # Check the contents of the file
-      if ! jq empty commit_hashes.json 2>/dev/null; then
-        echo "Invalid JSON or sign-in page detected, resetting to empty object."
-        cat commit_hashes.json
-        exit 1  # Exit the job to prevent proceeding further
-      fi
-   
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
-
   artifacts:
     paths:
       - commit_hashes.json
     expire_in: 90 days
+  dependencies: []
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'
 check-file-job-node:
