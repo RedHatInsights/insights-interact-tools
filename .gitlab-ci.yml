@@ -60,7 +60,7 @@ generate-commit-hashes:
       else
         echo "No previous commit_hashes.json found. Initializing."
         echo "{}" > commit_hashes.json
-      # fi
+      fi
 
       # Check the contents of the file
       if ! jq empty commit_hashes.json 2>/dev/null; then
