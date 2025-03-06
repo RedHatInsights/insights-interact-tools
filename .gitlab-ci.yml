@@ -44,7 +44,7 @@ generate-commit-hashes:
   tags:
     - shared-podman
   script:
-  
+    - touch commit_hashes.json
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
   artifacts:
