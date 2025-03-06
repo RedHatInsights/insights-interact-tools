@@ -51,7 +51,6 @@ generate-commit-hashes:
   cache:
     paths:
       - commit_hashes.json
-    expire_in: 90 days
   dependencies: []
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'
@@ -71,7 +70,6 @@ check-file-job-node:
   cache:
     paths:
       - commit_hashes.json  # Save the updated artifact for the next job
-    expire_in: 90 days
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
 
