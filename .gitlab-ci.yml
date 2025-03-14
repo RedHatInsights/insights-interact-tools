@@ -48,7 +48,6 @@ generate-commit-hashes:
     - |
       # Check if commit_hashes.json exists, if not, create it with default data or fetched data
       if [ ! -f commit_hashes.json ]; then
-        # Example of creating the commit_hashes.json with initial or default data
         echo '{}' > commit_hashes.json
       fi
     - echo "Contents of commit_hashes.json after generation:"
