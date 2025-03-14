@@ -47,14 +47,11 @@ generate-commit-hashes:
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
   cache:
-    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Cache key scoped by branch
     paths:
       - commit_hashes.json
-    policy: pull-push  # Pull cached data if available, and push updated cache for future jobs
   dependencies: []
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'
-
 check-file-job-node:
   stage: check
   image: node:latest
@@ -67,12 +64,9 @@ check-file-job-node:
     - echo "{}" > commit_hashes.json  # Insert an empty object into the file
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
-
   cache:
-    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Cache key scoped by branch
     paths:
       - commit_hashes.json  # Save the updated artifact for the next job
-    policy: pull-push  # Pull cached data if available, and push updated cache for future jobs
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
 
