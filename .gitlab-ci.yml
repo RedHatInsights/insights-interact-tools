@@ -44,6 +44,8 @@ generate-commit-hashes:
   tags:
     - shared-podman
   script:
+    - touch commit_hashes.json
+    - echo "{}" > commit_hashes.json  # Insert an empty object into the file
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
   cache:
@@ -60,10 +62,11 @@ check-file-job-node:
   dependencies:
     - generate-commit-hashes  # Use the artifact from the previous job
   script:
-    - touch commit_hashes.json
-    - echo "{}" > commit_hashes.json  # Insert an empty object into the file
-    - echo "Contents of commit_hashes.json after generation:"
+    - echo "Contents of commit_hashes.json before processing:"
     - cat commit_hashes.json
+    - node scripts/checkFileChange.js  # Modify the contents of commit_hashes.json
+    - echo "Contents of commit_hashes.json after processing:"
+    - cat commit_hashes.json  # Print the updated contents
   cache:
     paths:
       - commit_hashes.json  # Save the updated artifact for the next job
