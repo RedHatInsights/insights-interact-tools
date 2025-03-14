@@ -46,12 +46,18 @@ generate-commit-hashes:
   script:
     - echo "Generating commit_hashes.json"
     - |
-      # Ensure the commit_hashes.json file exists
-      echo '{}' > commit_hashes.json
+      # Check if commit_hashes.json exists, if not, create it with default data or fetched data
+      if [ ! -f commit_hashes.json ]; then
+        # Example of creating the commit_hashes.json with initial or default data
+        echo '{
+          "advisor-frontend": "initial-commit-hash",
+          "host-inventory-frontend": "initial-commit-hash"
+        }' > commit_hashes.json
+      fi
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
   cache:
-    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Same cache key across jobs
+    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Cache key scoped by branch
     paths:
       - commit_hashes.json
     policy: pull-push  # Use the cache if available, and push new cache for future jobs
@@ -71,11 +77,11 @@ check-file-job-node:
     - cat commit_hashes.json
     - node scripts/checkFileChange.js  # Modify the contents of commit_hashes.json
     - echo "Contents of commit_hashes.json after processing:"
-    - cat commit_hashes.json  # Print the updated contents
+    - cat commit_hashes.json  
   cache:
     key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Same cache key across jobs
     paths:
-      - commit_hashes.json  # Save the updated artifact for the next job
+      - commit_hashes.json  
     policy: pull-push  # Use the cache if available, and push new cache for future jobs
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
