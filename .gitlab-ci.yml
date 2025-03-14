@@ -44,13 +44,17 @@ generate-commit-hashes:
   tags:
     - shared-podman
   script:
+    - echo "Generating commit_hashes.json"
+    - |
+      # Ensure the commit_hashes.json file exists
+      echo '{}' > commit_hashes.json
     - echo "Contents of commit_hashes.json after generation:"
     - cat commit_hashes.json
   cache:
-    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Cache key scoped by branch
+    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Same cache key across jobs
     paths:
       - commit_hashes.json
-    policy: pull-push  # Pull cached data if available, and push updated cache for future jobs
+    policy: pull-push  # Use the cache if available, and push new cache for future jobs
   dependencies: []
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'
@@ -69,13 +73,12 @@ check-file-job-node:
     - echo "Contents of commit_hashes.json after processing:"
     - cat commit_hashes.json  # Print the updated contents
   cache:
-    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Cache key scoped by branch
+    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Same cache key across jobs
     paths:
-      - commit_hashes.json  
-    policy: pull-push  # Pull cached data if available, and push updated cache for future jobs
+      - commit_hashes.json  # Save the updated artifact for the next job
+    policy: pull-push  # Use the cache if available, and push new cache for future jobs
   rules:
     - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
-
 
 # Other JIRA Pipeline (Python jobs)
 add-iteration-job:
