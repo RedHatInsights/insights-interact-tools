@@ -32,8 +32,14 @@ rm -rf ./coverage
 
 mkdir -p coverage/src
 
-npm run test
-cp ./coverage-jest/coverage-final.json ./coverage/src/jest.json
+jest_config=$(grep -q -e '"jest": {' package.json; echo $?)
+
+if [ "$jest_config" -eq 0 ]; then
+  npm run test
+  cp ./coverage-jest/coverage-final.json ./coverage/src/jest.json
+else
+  echo "No jest config found!"
+fi
 
 if [ -f cypress.config.js ]; then
 	npm run test:ct
@@ -58,7 +64,10 @@ else
 	echo "Uploading to codecov"
 
 	./codecov --verbose -F "combined" -t "$CODECOV_TOKEN" -f ./coverage/coverage-final.json
-	./codecov --verbose -F "jest" -t "$CODECOV_TOKEN" -f ./coverage-jest/coverage-final.json
+
+	if [ "$jest_config" -eq 0 ]; then
+		./codecov --verbose -F "jest" -t "$CODECOV_TOKEN" -f ./coverage-jest/coverage-final.json
+	fi
 
 	if [ -f cypress.config.js ]; then
 		./codecov --verbose -F "cypress" -t "$CODECOV_TOKEN" -f ./coverage-cypress/coverage-final.json
