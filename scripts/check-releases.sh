@@ -105,6 +105,7 @@ print_result_details(){
 	local app_name=$1
 	local i=$2
 	local -a app_commit_history=("${@:3}")
+	local commits_overflow="${!#}"
 
 	# Display the last commit released
 	last_commit_gh_url=$GH_URL/${apps[$app_name,'GH']}/commit/${app_commit_history[$i]}
@@ -121,6 +122,10 @@ print_result_details(){
 		printf "		- \e]8;;%s\e\\%s\e]8;;\e\\" "$commit_gh_url" "$commit_hash"
 		echo
 	done
+	# If there are more than 29 (one page in result) commits
+	if [ "$commits_overflow" = "true" ]; then
+		printf "		and more..."
+	fi
 	echo
 }
 
@@ -255,7 +260,7 @@ for app in "${!apps[@]}"; do
 
 						# Display extended output with detailed info
 						if [[ $VERBOSE == 1 ]]; then
-							print_result_details "$app_name" $i "${app_commit_history[@]}"
+							print_result_details "$app_name" $i "${app_commit_history[@]}" false
 						fi
 					fi
 					break
@@ -265,6 +270,12 @@ for app in "${!apps[@]}"; do
 				if [[ $i == $(( ${#app_commit_history[@]} - 1 )) ]]; then
 					print_result_header "$app_name" "$i+" "$app_commits_page_url"
 					let "APPS_TO_BE_RELEASED_COUNT++"
+
+					# Display extended output with detailed info
+					if [[ $VERBOSE == 1 ]]; then
+						print_result_details "$app_name" $i "${app_commit_history[@]}" true
+					fi
+
 				fi
 
 			done
