@@ -1,0 +1,49 @@
+# Sentry Onboarding Script Template
+
+This script monitors deploy ref files in `app-interface` and triggers GitHub workflows to kick off Sentry builds for your frontend apps.
+
+---
+
+## 📦 How to Use the Automated Script
+
+### ✅ Prerequisites
+
+1. **Workflow added in the GitHub repo**  
+   Ensure your repo has a Sentry GitHub Actions workflow (e.g. `sentry.yml`).  
+   Example: [`sentry.yml`](https://github.com/RedHatInsights/insights-remediations-frontend/blob/master/.github/workflows/sentry.yml)
+
+2. **Sentry project is created**  
+   If the Sentry project doesn’t exist yet, reach out in `#help-sentry` (super easy to set up).
+
+3. **Sentry plugin is integrated into your app**
+
+   - Add the Sentry plugin in your `fec.config.js`.  
+     Example: [fec.config.js](https://github.com/RedHatInsights/insights-remediations-frontend/blob/master/fec.config.js)
+   - Install the Sentry wizard to get your DSN and Auth Token:
+     ```bash
+     npm i @sentry/wizard
+     ```
+   - You can also retrieve your DSN and Auth Token via the Sentry UI in your project’s settings.
+
+4. **Chrome routes traffic to your app**
+
+   - Make sure your app is included in the [Chrome Sentry config](https://github.com/RedHatInsights/insights-chrome/blob/master/src/utils/sentry.ts)
+   - For apps outside the `insights` org, some additional logic may need to be added to route correctly.
+
+5. **(Optional but recommended) Set up a GitLab repo to host and schedule this script**  
+   This helps run the script automatically, either on a schedule or in response to app-interface changes. (checkout ExampleGitLabPipeline.txt if you go this route)
+
+---
+
+### 🚀 Running the Script
+
+1. Add your app metadata to `repos.config.js`
+2. Ensure you’ve set the required environment variables:
+   - `GITHUB_TOKEN` (for triggering GitHub workflows)
+   - `SENTRY_AUTH_TOKEN_CHROME` (only if building `insights-chrome`)
+3. Run the script:
+
+```bash
+cd SentryOnboarding
+node index.js
+```
