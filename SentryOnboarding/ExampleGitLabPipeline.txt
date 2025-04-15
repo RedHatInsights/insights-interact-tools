@@ -1,0 +1,54 @@
+stages:
+  - generate
+  - check
+  - iteration
+  - release
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# Sentry Automation Pipeline (Node.js jobs)
+generate-commit-hashes:
+  stage: generate
+  image: node:latest
+  tags:
+    - shared-podman
+  script:
+    - echo "Generating commit_hashes.json"
+    - |
+      # Check if commit_hashes.json exists, if not, create it with default data or fetched data
+      if [ ! -f commit_hashes.json ]; then
+        echo '{}' > commit_hashes.json
+      fi
+    - echo "Contents of commit_hashes.json after generation:"
+    - cat commit_hashes.json
+  cache:
+    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Cache key scoped by branch
+    paths:
+      - commit_hashes.json
+    policy: pull-push  # Use the cache if available, and push new cache for future jobs
+  dependencies: []
+  rules:
+    - if: '$RUN_SENTRY_PIPELINE == "true"'
+
+check-file-job-node:
+  stage: check
+  image: node:latest
+  tags:
+    - shared-podman
+  dependencies:
+    - generate-commit-hashes  # Use the artifact from the previous job
+  script:
+    - echo "Contents of commit_hashes.json before processing:"
+    - cat commit_hashes.json
+    - node scripts/checkFileChange.js  # Modify the contents of commit_hashes.json
+    - echo "Contents of commit_hashes.json after processing:"
+    - cat commit_hashes.json  
+  cache:
+    key: "$CI_COMMIT_REF_NAME-commit-hashes"  # Same cache key across jobs
+    paths:
+      - commit_hashes.json  
+    policy: pull-push  # Use the cache if available, and push new cache for future jobs
+  rules:
+    - if: '$RUN_SENTRY_PIPELINE == "true"'  # Only run if Sentry pipeline is triggered by the variable
+
