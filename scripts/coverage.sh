@@ -51,7 +51,7 @@ fi
 npx nyc merge ./coverage/src ./coverage/coverage-final.json
 npx nyc report -t ./coverage --reporter html --report-dir ./coverage/html
 
-if [ -z "${TRAVIS}" ]; then
+if [ -z "${GITHUB_ACTIONS}" ] && [ -z "${TRAVIS}" ]; then
 	echo "Not on travis..."
 else
 	# Workaround for https://github.com/codecov/uploader/issues/475
