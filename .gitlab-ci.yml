@@ -92,13 +92,3 @@ add-iteration-job:
   when: always
   rules:
     - if: '$ITERATION_JOB == "true"'  # Only run if other jobs pipeline is triggered by the variable
-
-list-release-job:
-  stage: release
-  image: python:3
-  script:
-    - python scripts/list-release.py
-  tags: [shared-podman]
-  when: always
-  rules:
-    - if: '$RELEASE_JOB == "true"'  # Only run if other jobs pipeline is triggered by the variable
