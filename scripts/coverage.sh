@@ -16,6 +16,9 @@
 #
 set -e
 
+echo "Initiating coverage collection process"
+echo ""
+
 case $(uname) in
 Darwin)
 	export CODECOV_BIN="https://uploader.codecov.io/latest/macos/codecov"
@@ -25,6 +28,14 @@ Linux)
 	;;
 esac
 
+JEST_COMMAND="${JEST_COMMAND:-"npm run test"}"
+JEST_CONFIG="${JEST_CONFIG:-"jest.config.js"}"
+
+CYPRESS_COMMAND="${CYPRESS_COMMAND:-"npm run test:ct"}"
+CYPRESS_CONFIG="${CYPRESS_CONFIG:-"cypress.config.js"}"
+
+echo "Removing old reports."
+
 rm -rf ./nyc_output
 rm -rf ./coverage-jest
 rm -rf ./coverage-cypress
@@ -32,17 +43,28 @@ rm -rf ./coverage
 
 mkdir -p coverage/src
 
-jest_config=$(grep -q -e '"jest": {' package.json; echo $?)
+jest_pkg_config=$(
+	grep -q -e '"jest": {' package.json
+	echo $?
+)
 
-if [ "$jest_config" -eq 0 ]; then
-  npm run test
-  cp ./coverage-jest/coverage-final.json ./coverage/src/jest.json
-else
-  echo "No jest config found!"
+if [ "$jest_pkg_config" -eq 0 ] || [ -f "$JEST_CONFIG" ] || [ -f jest.config.mjs ] || [ -f .jest.config.js ] || [ -f .jest.config.mjs ] || [ -f jest.config.ts ] || [ -f jest.config.cjs ]; then
+	HAS_JEST="${HAS_JEST:-"true"}"
 fi
 
-if [ -f cypress.config.js ]; then
-	npm run test:ct
+if [ "$HAS_JEST" = "true" ]; then
+	echo "Running Jest tests with: ${JEST_COMMAND}"
+
+	$JEST_COMMAND
+	cp ./coverage-jest/coverage-final.json ./coverage/src/jest.json
+else
+	echo "No jest config found!"
+fi
+
+if [ -f "$CYPRESS_CONFIG" ]; then
+	echo "Running Cypress tests with: ${CYPRESS_COMMAND}"
+
+	$CYPRESS_COMMAND
 	cp ./coverage-cypress/coverage-final.json ./coverage/src/cypress.json
 else
 	echo "No cypress config found!"
@@ -61,15 +83,18 @@ else
 	curl -Os "$CODECOV_BIN"
 	chmod +x codecov
 
-	echo "Uploading to codecov"
+	echo "Uploading to combined report to codecov"
 
 	./codecov --verbose -F "combined" -t "$CODECOV_TOKEN" -f ./coverage/coverage-final.json
 
-	if [ "$jest_config" -eq 0 ]; then
+	if [ "$HAS_JEST" = "true" ]; then
+		echo "Uploading to jest report to codecov"
 		./codecov --verbose -F "jest" -t "$CODECOV_TOKEN" -f ./coverage-jest/coverage-final.json
 	fi
 
 	if [ -f cypress.config.js ]; then
+		echo "Uploading to cypress report to codecov"
+
 		./codecov --verbose -F "cypress" -t "$CODECOV_TOKEN" -f ./coverage-cypress/coverage-final.json
 	fi
 fi
