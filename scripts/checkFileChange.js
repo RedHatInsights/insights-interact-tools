@@ -173,6 +173,55 @@ async function buildInsightsChromeLocally (commitHash) {
     );
 
     console.log('Build completed successfully.');
+
+    // After the build step in buildInsightsChromeLocally
+
+    // 1. Install Sentry CLI
+    console.log('Installing Sentry CLI...');
+    execSync('npm install -g @sentry/cli', { stdio: 'inherit' });
+
+    // 2. Upload sourcemaps to Sentry for each project
+    const projects = [
+      'advisor-rhel',
+      'vulnerability-rhel',
+      'compliance-rhel',
+      'remediations-rhel',
+      'dashboard-rhel',
+      'malware-rhel',
+      'ocp-advisor',
+      'ocp-vulnerability',
+      'patchman-rhel',
+      'registration-assistant-rhel',
+      'sed-frontend-rhc',
+      'tasks-rhel',
+      'policies-rhel',
+      'inventory-rhel'
+    ];
+
+    for (const project of projects) {
+      console.log(`Uploading sourcemaps to ${project}...`);
+      try {
+        execSync(
+          `sentry-cli releases files "${commitHash}" upload-sourcemaps ./dist/js ` +
+          `--org red-hat-it ` +
+          `--project "${project}" ` +
+          `--release "${commitHash}" ` +
+          `--dist "${commitHash}" ` +
+          `--url-prefix '~/insights/inventory/js' ` +
+          `--validate`,
+          {
+            stdio: 'inherit',
+            cwd: localPath,
+            env: {
+              ...process.env,
+              SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN_CHROME
+            }
+          }
+        );
+      } catch (err) {
+        console.error(`Error uploading sourcemaps for ${project}:`, err.message);
+      }
+    }
   } catch (err) {
     console.error('Error building insights-chrome locally:', err.message);
     process.exit(1);
