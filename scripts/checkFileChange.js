@@ -207,7 +207,7 @@ async function buildInsightsChromeLocally (commitHash) {
           `--project "${project}" ` +
           `--release "${commitHash}" ` +
           `--dist "${commitHash}" ` +
-          `--url-prefix '~/insights/inventory/js' ` +
+          `--url-prefix '~/insights/chrome/js' ` +
           `--validate`,
           {
             stdio: 'inherit',
