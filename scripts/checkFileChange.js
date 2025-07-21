@@ -212,18 +212,10 @@ async function buildInsightsChromeLocally(commitHash) {
     for (const project of projects) {
       console.log(`Uploading sourcemaps to ${project}...`);
       console.log("▶ Listing all .js.map files:");
-      execSync('find ./dist/js -name "*.js.map" -printf "%p\n"', {
+      execSync('find build -type f -name "*.js.map" -printf "%p\n"', {
         cwd: localPath,
         stdio: "inherit",
       });
-
-      console.log(
-        execSync('find ./build/js -name "*.js.map" -printf "%p\n"', {
-          cwd: localPath,
-          stdio: "inherit",
-        })
-      );
-
       try {
         execSync(
           `sentry-cli releases files "${commitHash}" upload-sourcemaps ./dist/js ` +
