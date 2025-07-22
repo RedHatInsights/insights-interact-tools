@@ -143,11 +143,13 @@ async function cloneRepo(repoUrl, clonePath) {
   }
 }
 
+
 async function buildInsightsChromeLocally(commitHash) {
   const chromeRepoUrl = "https://github.com/RedHatInsights/insights-chrome.git";
   const localPath = "/tmp/insights-chrome";
 
   try {
+    // Clone or update the chrome repo
     if (!fs.existsSync(localPath)) {
       console.log(`Cloning insights-chrome repository: ${chromeRepoUrl}`);
       execSync(`git clone ${chromeRepoUrl} ${localPath}`, { stdio: "inherit" });
@@ -159,17 +161,17 @@ async function buildInsightsChromeLocally(commitHash) {
       );
     }
 
-    // Checkout commit
+    // Checkout the commit
     console.log(`Checking out commit hash: ${commitHash}`);
     execSync(`cd ${localPath} && git checkout ${commitHash}`, {
       stdio: "inherit",
     });
 
-    // Install deps
+    // Install dependencies
     console.log("Installing dependencies...");
     execSync(`cd ${localPath} && npm ci`, { stdio: "inherit" });
 
-    // Build the project with Sentry environment variables
+    // Build with Sentry environment
     console.log("Building the project...");
     execSync(`cd ${localPath} && npm run build`, {
       stdio: "inherit",
@@ -185,13 +187,11 @@ async function buildInsightsChromeLocally(commitHash) {
 
     console.log("Build completed successfully.");
 
-    // After the build step in buildInsightsChromeLocally
-
-    // 1. Install Sentry CLI
+    // Install Sentry CLI
     console.log("Installing Sentry CLI...");
     execSync("npm install -g @sentry/cli", { stdio: "inherit" });
 
-    // 2. Upload sourcemaps to Sentry for each project
+    // Define all the projects you want to upload maps for
     const projects = [
       "advisor-rhel",
       "vulnerability-rhel",
@@ -212,14 +212,15 @@ async function buildInsightsChromeLocally(commitHash) {
     for (const project of projects) {
       console.log(`Uploading sourcemaps to ${project}...`);
       try {
+        // 2) Upload the source maps with the same release, correct URL prefix, and rewrite
         execSync(
-          `sentry-cli releases files "${commitHash}" upload-sourcemaps ./build/js ` +
-            `--org red-hat-it ` +
-            `--project "${project}" ` +
-            `--release "${commitHash}" ` +
-            `--dist "${commitHash}" ` +
-            `--url-prefix '~/insights/chrome/js' ` +
-            `--validate`,
+          `sentry-cli releases files "${commitHash}" upload-sourcemaps ./build/js \
+            --org red-hat-it \
+            --project "${project}" \
+            --release "${commitHash}" \
+            --url-prefix '/apps/chrome/js' \
+            --rewrite \
+            --validate`,
           {
             stdio: "inherit",
             cwd: localPath,
@@ -241,6 +242,7 @@ async function buildInsightsChromeLocally(commitHash) {
     process.exit(1);
   }
 }
+
 
 function extractProdStableRef(filePath, appName) {
   try {
