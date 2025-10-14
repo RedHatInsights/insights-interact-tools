@@ -13,7 +13,14 @@ This script monitors deploy ref files in `app-interface` and triggers GitHub wor
    Example: [`sentry.yml`](https://github.com/RedHatInsights/insights-remediations-frontend/blob/master/.github/workflows/sentry.yml)
 
 2. **Sentry project is created**  
-   If the Sentry project doesn’t exist yet, reach out in `#help-sentry` (super easy to set up).
+   If the Sentry project doesn’t exist yet, raise a ticket on ServiceNow with details as follows:
+       * Request Type: Request a New Sentry Project
+       * Team Name: <your_team_name>
+       * Appcode: <your_app_code>
+       * New Project Name: <your_plugin_name>
+       * Provide additional details: I would like to request a new project under the <your_team_name> team.
+
+    Start a thread in Slack `#help-sentry` channel asking for help and paste links to tickets and your PR.
 
 3. **Sentry plugin is integrated into your app**
 
@@ -28,7 +35,7 @@ This script monitors deploy ref files in `app-interface` and triggers GitHub wor
 4. **Chrome routes traffic to your app**
 
    - Make sure your app is included in the [Chrome Sentry config](https://github.com/RedHatInsights/insights-chrome/blob/master/src/utils/sentry.ts)
-   - For apps outside the `insights` org, some additional logic may need to be added to route correctly.
+   - For apps outside the `insights` org, some additional logic might need to be added to route correctly.
 
 5. **(Optional but recommended) Set up a GitLab repo to host and schedule this script**  
    This helps run the script automatically, either on a schedule or in response to app-interface changes. (checkout ExampleGitLabPipeline.txt if you go this route)
