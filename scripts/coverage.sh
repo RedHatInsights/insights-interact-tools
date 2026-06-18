@@ -1,9 +1,10 @@
 #!/bin/bash
 #
 # Merges coverage reports from cypress and jest tests
-# and generates an HTML report to view and json report to submit to codecov
+# and generates an HTML report to view and a merged json report for Codecov.
+# Upload to Codecov is handled separately via codecov/codecov-action in GitHub Actions.
 #
-# For jest coverage to be collected and submitted correctly
+# For jest coverage to be collected correctly
 #  * Ensure the *coverageDirectory* is set to "coverage-jest" in packages.json
 #  * Ensure there is a npm "test" script
 #
@@ -18,15 +19,6 @@ set -e
 
 echo "Initiating coverage collection process"
 echo ""
-
-case $(uname) in
-Darwin)
-	export CODECOV_BIN="https://uploader.codecov.io/latest/macos/codecov"
-	;;
-Linux)
-	export CODECOV_BIN="https://uploader.codecov.io/latest/linux/codecov"
-	;;
-esac
 
 JEST_COMMAND="${JEST_COMMAND:-"npm run test"}"
 JEST_CONFIG="${JEST_CONFIG:-"jest.config.js"}"
@@ -73,28 +65,8 @@ fi
 npx nyc merge ./coverage/src ./coverage/coverage-final.json
 npx nyc report -t ./coverage --reporter html --report-dir ./coverage/html
 
-if [ -z "${GITHUB_ACTIONS}" ] && [ -z "${TRAVIS}" ]; then
-	echo "Not on travis..."
-else
-	# Workaround for https://github.com/codecov/uploader/issues/475
-	unset NODE_OPTIONS
-	echo "Downloading codecov binary from $CODECOV_BIN"
+echo "Coverage reports generated: ./coverage/coverage-final.json (merged)"
 
-	curl -Os "$CODECOV_BIN"
-	chmod +x codecov
-
-	echo "Uploading to combined report to codecov"
-
-	./codecov --verbose -F "combined" -t "$CODECOV_TOKEN" -f ./coverage/coverage-final.json
-
-	if [ "$HAS_JEST" = "true" ]; then
-		echo "Uploading to jest report to codecov"
-		./codecov --verbose -F "jest" -t "$CODECOV_TOKEN" -f ./coverage-jest/coverage-final.json
-	fi
-
-	if [ -f cypress.config.js ]; then
-		echo "Uploading to cypress report to codecov"
-
-		./codecov --verbose -F "cypress" -t "$CODECOV_TOKEN" -f ./coverage-cypress/coverage-final.json
-	fi
+if [ -n "${GITHUB_ACTIONS}" ]; then
+	echo "To upload coverage to Codecov, add codecov/codecov-action to your GitHub Actions workflow."
 fi
