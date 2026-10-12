@@ -108,13 +108,6 @@ const filesToMonitor = [
     workflowTrigger: 'workflow_dispatch',
     appName: 'registration-assistant',
     workflowFileName: 'sentry.yml'
-  },
-  {
-    path: 'data/services/insights/config-manager/deploy.yml',
-    githubRepo: 'https://github.com/RedHatInsights/sed-frontend.git',
-    workflowTrigger: 'workflow_dispatch',
-    appName: 'sed-frontend',
-    workflowFileName: 'sentry.yml'
   }
 ];
 
@@ -203,7 +196,6 @@ async function buildInsightsChromeLocally (commitHash) {
       'ocp-vulnerability',
       'patchman-rhel',
       'registration-assistant-rhel',
-      'sed-frontend-rhc',
       'tasks-rhel',
       'policies-rhel',
       'inventory-rhel'

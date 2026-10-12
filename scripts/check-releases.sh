@@ -61,14 +61,6 @@ apps["Remediations,GH"]="insights-remediations-frontend"
 apps["Remediations,GL"]="remediations%2Fdeploy-clowder.yml"
 apps["Remediations,dpl_name"]="remediations-frontend"
 
-apps["Sed,GH"]="sed-frontend"
-apps["Sed,GL"]="config-manager%2Fdeploy.yml"
-apps["Sed,dpl_name"]="sed-frontend"
-
-apps["Sed,GH"]="sed-frontend"
-apps["Sed,GL"]="config-manager%2Fdeploy.yml"
-apps["Sed,dpl_name"]="sed-frontend"
-
 apps["Tasks,GH"]="tasks-frontend"
 apps["Tasks,GL"]="advisor%2Fdeploy.yml"
 apps["Tasks,dpl_name"]="tasks-frontend"

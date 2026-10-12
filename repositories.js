@@ -56,10 +56,6 @@ export const apps = {
     owner: 'RedHatInsights',
     repo: 'insights-dashboard'
   },
-  'sed-frontend': {
-    owner: 'RedHatInsights',
-    repo: 'sed-frontend'
-  },
   'insights-remediations-frontend': {
     owner: 'RedHatInsights',
     repo: 'insights-remediations-frontend'
